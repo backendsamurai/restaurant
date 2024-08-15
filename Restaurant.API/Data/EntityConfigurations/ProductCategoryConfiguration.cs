@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Restaurant.API.Data.Seeders;
 using Restaurant.API.Entities;
 
 namespace Restaurant.API.Data.EntityConfigurations;
@@ -21,5 +22,8 @@ public sealed class ProductCategoryConfiguration : IEntityTypeConfiguration<Prod
         builder
             .HasIndex(p => p.Name)
             .IsUnique();
+
+        // Seed Data
+        builder.HasData(ProductCategorySeeder.GetProductCategories());
     }
 }
