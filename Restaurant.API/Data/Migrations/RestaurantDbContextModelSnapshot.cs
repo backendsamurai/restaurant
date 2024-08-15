@@ -30,30 +30,15 @@ namespace Restaurant.API.Data.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("email");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("name");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("password_hash");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
 
                     b.HasKey("Id")
                         .HasName("pk_customers");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("ix_customers_email");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_customers_user_id");
 
                     b.ToTable("customers", (string)null);
                 });
@@ -90,37 +75,22 @@ namespace Restaurant.API.Data.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("email");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("name");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar")
-                        .HasColumnName("password_hash");
-
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid")
                         .HasColumnName("role_id");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_employees");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasDatabaseName("ix_employees_email");
-
                     b.HasIndex("RoleId")
                         .HasDatabaseName("ix_employees_role_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_employees_user_id");
 
                     b.ToTable("employees", (string)null);
                 });
@@ -151,12 +121,12 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("e282dd51-115c-4c8d-9628-f73fd824285d"),
+                            Id = new Guid("3fb91cc0-db32-436d-a5e6-4db1a0f1f177"),
                             Name = "waiter"
                         },
                         new
                         {
-                            Id = new Guid("9415be67-c498-4cc1-b172-8940cc150b52"),
+                            Id = new Guid("bb4ce6ef-66f1-499b-9f07-4b994f53facb"),
                             Name = "manager"
                         });
                 });
@@ -367,54 +337,113 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("500a450c-2b8b-4ff0-a6a0-cde8a0ee1303"),
+                            Id = new Guid("cbda9a0d-d881-49ea-87ce-0d5b59777fd8"),
                             Name = "Seafood"
                         },
                         new
                         {
-                            Id = new Guid("f9f7c3a7-f9ed-434f-81ee-dbbfed0c1a51"),
+                            Id = new Guid("8b1d8361-5ea3-48d2-b54f-040ff0e9d22f"),
                             Name = "Steaks"
                         },
                         new
                         {
-                            Id = new Guid("da155e36-7d92-4db0-907c-59443b67ec87"),
+                            Id = new Guid("60618882-9d50-41e1-9592-83eb402f977f"),
                             Name = "Sushi"
                         },
                         new
                         {
-                            Id = new Guid("87761332-9a41-4f64-8dc3-119e0256fa7a"),
+                            Id = new Guid("143cc992-8dae-4983-b3fd-6345f56be806"),
                             Name = "Barbecue"
                         },
                         new
                         {
-                            Id = new Guid("7838ad9c-f81f-4474-8657-879e8c29b78f"),
+                            Id = new Guid("87d93202-f391-4c5e-8614-fe22199b73cf"),
                             Name = "Hot Dogs"
                         },
                         new
                         {
-                            Id = new Guid("76ba8479-f89a-43f4-a6a5-9a08d23b1851"),
+                            Id = new Guid("917bc85f-8a3c-40e0-b870-5c453357d4b9"),
                             Name = "Pizzas"
                         },
                         new
                         {
-                            Id = new Guid("69e358cd-f772-48d1-8138-b6e01bc34d82"),
+                            Id = new Guid("3f73795d-1da9-4865-ba31-100ec4ca1334"),
                             Name = "Drinks"
                         },
                         new
                         {
-                            Id = new Guid("f456c7f3-cf5e-486c-a649-42fbcc8bab44"),
+                            Id = new Guid("1931891d-042f-4cf2-9fb3-aa839cf96b6a"),
                             Name = "Coffee"
                         },
                         new
                         {
-                            Id = new Guid("0ad39dbc-a9f0-4bc4-8e1e-0fe3f095ac5f"),
+                            Id = new Guid("f0493174-fdf1-4f6c-9c8f-5083591ee8f8"),
                             Name = "Fast Food"
                         },
                         new
                         {
-                            Id = new Guid("4f5cba22-854f-4f37-94dc-d2311aca31a0"),
+                            Id = new Guid("a7c35e5d-e0dc-4d0c-99f7-3cbf5ea1e1f7"),
                             Name = "Desserts"
                         });
+                });
+
+            modelBuilder.Entity("Restaurant.API.Entities.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar")
+                        .HasColumnName("email");
+
+                    b.Property<bool>("IsVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_verified");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("varchar")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_email");
+
+                    b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Restaurant.API.Entities.Customer", b =>
+                {
+                    b.HasOne("Restaurant.API.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_customers_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Restaurant.API.Entities.Employee", b =>
@@ -426,7 +455,16 @@ namespace Restaurant.API.Data.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_employees_employee_roles_role_id");
 
+                    b.HasOne("Restaurant.API.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_employees_users_user_id");
+
                     b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Restaurant.API.Entities.Order", b =>

@@ -6,6 +6,7 @@ namespace Restaurant.API.Data;
 
 public sealed class RestaurantDbContext(DbContextOptions options) : DbContext(options)
 {
+    public DbSet<User> Users { get; set; }
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Employee> Employees { get; set; }
     public DbSet<EmployeeRole> EmployeeRoles { get; set; }

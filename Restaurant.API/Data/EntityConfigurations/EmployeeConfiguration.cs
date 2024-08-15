@@ -12,24 +12,5 @@ public sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .Property(e => e.Id)
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
-
-        builder
-            .Property(e => e.Name)
-            .HasColumnType("varchar")
-            .HasMaxLength(255);
-
-        builder
-            .Property(e => e.Email)
-            .HasColumnType("varchar")
-            .HasMaxLength(255);
-
-        builder
-            .Property(e => e.PasswordHash)
-            .HasColumnType("varchar")
-            .HasMaxLength(255);
-
-        builder
-            .HasIndex(e => e.Email)
-            .IsUnique();
     }
 }
