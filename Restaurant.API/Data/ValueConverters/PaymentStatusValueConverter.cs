@@ -6,7 +6,7 @@ namespace Restaurant.API.Data.ValueConverters;
 public sealed class PaymentStatusValueConverter : ValueConverter<PaymentStatus, string>
 {
     public PaymentStatusValueConverter() : base(
-        (status) => status.ToString(),
-        (value) => (PaymentStatus)Enum.Parse(typeof(PaymentStatus), value))
+        (status) => status.ToString().ToLower(),
+        (value) => (PaymentStatus)Enum.Parse(typeof(PaymentStatus), value.ToUpper()))
     { }
 }

@@ -12,7 +12,7 @@ using Restaurant.API.Data;
 namespace Restaurant.API.Data.Migrations
 {
     [DbContext(typeof(RestaurantDbContext))]
-    [Migration("20240815162654_Initial")]
+    [Migration("20240817120911_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -96,6 +96,14 @@ namespace Restaurant.API.Data.Migrations
                         .HasDatabaseName("ix_employees_user_id");
 
                     b.ToTable("employees", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("52bdab5a-5cc0-4295-a464-c947075db36b"),
+                            RoleId = new Guid("e4e8c920-d16b-4a73-9f5b-c2a6ffbdb799"),
+                            UserId = new Guid("bd8e5cb1-2050-44e0-9cb9-5e02959e9dd8")
+                        });
                 });
 
             modelBuilder.Entity("Restaurant.API.Entities.EmployeeRole", b =>
@@ -124,12 +132,12 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("3fb91cc0-db32-436d-a5e6-4db1a0f1f177"),
+                            Id = new Guid("3708df42-08ba-431a-9726-aa6b406ee149"),
                             Name = "waiter"
                         },
                         new
                         {
-                            Id = new Guid("bb4ce6ef-66f1-499b-9f07-4b994f53facb"),
+                            Id = new Guid("e4e8c920-d16b-4a73-9f5b-c2a6ffbdb799"),
                             Name = "manager"
                         });
                 });
@@ -340,52 +348,52 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("cbda9a0d-d881-49ea-87ce-0d5b59777fd8"),
+                            Id = new Guid("65002327-d344-4f49-a4ac-530a03854419"),
                             Name = "Seafood"
                         },
                         new
                         {
-                            Id = new Guid("8b1d8361-5ea3-48d2-b54f-040ff0e9d22f"),
+                            Id = new Guid("5687c3d2-606c-4c23-b935-02071af45f98"),
                             Name = "Steaks"
                         },
                         new
                         {
-                            Id = new Guid("60618882-9d50-41e1-9592-83eb402f977f"),
+                            Id = new Guid("b308cbde-a0f6-465c-a2d3-0399b7c4a3f8"),
                             Name = "Sushi"
                         },
                         new
                         {
-                            Id = new Guid("143cc992-8dae-4983-b3fd-6345f56be806"),
+                            Id = new Guid("67d4e817-f3c4-4e00-b333-0795fb508009"),
                             Name = "Barbecue"
                         },
                         new
                         {
-                            Id = new Guid("87d93202-f391-4c5e-8614-fe22199b73cf"),
+                            Id = new Guid("76213c03-96d2-453c-a3b4-568d7a7dd24d"),
                             Name = "Hot Dogs"
                         },
                         new
                         {
-                            Id = new Guid("917bc85f-8a3c-40e0-b870-5c453357d4b9"),
+                            Id = new Guid("bc41175a-8fd4-4ee2-b246-1ff2051d309c"),
                             Name = "Pizzas"
                         },
                         new
                         {
-                            Id = new Guid("3f73795d-1da9-4865-ba31-100ec4ca1334"),
+                            Id = new Guid("8a3f42bf-9596-457e-ab90-78eb11406a98"),
                             Name = "Drinks"
                         },
                         new
                         {
-                            Id = new Guid("1931891d-042f-4cf2-9fb3-aa839cf96b6a"),
+                            Id = new Guid("e9b423df-73a2-4551-b0fa-6f536ed49669"),
                             Name = "Coffee"
                         },
                         new
                         {
-                            Id = new Guid("f0493174-fdf1-4f6c-9c8f-5083591ee8f8"),
+                            Id = new Guid("ad4f97b4-f66a-4ed7-9d58-88cb06484bc2"),
                             Name = "Fast Food"
                         },
                         new
                         {
-                            Id = new Guid("a7c35e5d-e0dc-4d0c-99f7-3cbf5ea1e1f7"),
+                            Id = new Guid("5139ac00-d935-4336-b9cc-975d315de74c"),
                             Name = "Desserts"
                         });
                 });
@@ -435,6 +443,17 @@ namespace Restaurant.API.Data.Migrations
                         .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("bd8e5cb1-2050-44e0-9cb9-5e02959e9dd8"),
+                            Email = "victor_samoylov@gmail.com",
+                            IsVerified = false,
+                            Name = "Victor Samoylov",
+                            PasswordHash = "9B7F9BC37442ED41E1DF20C2F18945DCD53AC330FCF7306B35AF002B49B2A917-9A0EA4DE1341D0CE3568CFF682A3054A",
+                            Role = "employee"
+                        });
                 });
 
             modelBuilder.Entity("Restaurant.API.Entities.Customer", b =>

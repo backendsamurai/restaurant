@@ -1,10 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Restaurant.API.Configurations;
 using Restaurant.API.Data.EntityConfigurations;
+using Restaurant.API.Data.Seeders;
 using Restaurant.API.Entities;
+using Restaurant.API.Services;
 
 namespace Restaurant.API.Data;
 
-public sealed class RestaurantDbContext(DbContextOptions options) : DbContext(options)
+public sealed class RestaurantDbContext(
+    DbContextOptions options,
+    IOptions<ManagerOptions> managerOptions,
+    IPasswordHasher passwordHasher
+) : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Customer> Customers { get; set; }
@@ -21,5 +29,25 @@ public sealed class RestaurantDbContext(DbContextOptions options) : DbContext(op
     {
         modelBuilder
             .ApplyConfigurationsFromAssembly(EntityConfigurationsAssembly.GetAssembly());
+
+        var passwordHash = passwordHasher.Hash(managerOptions.Value.Password);
+
+        EmployeeSeeder.SetManager(managerOptions.Value.Name, managerOptions.Value.Email, passwordHash);
+
+        if (EmployeeSeeder.Manager is not null)
+        {
+            modelBuilder.Entity<User>().HasData(EmployeeSeeder.Manager);
+            var managerRole = EmployeeRoleSeeder.employeeRoles.SingleOrDefault(e => e.Name == "manager");
+
+            if (managerRole is not null)
+            {
+                modelBuilder.Entity<Employee>().HasData(new
+                {
+                    Id = Guid.NewGuid(),
+                    RoleId = managerRole.Id,
+                    UserId = EmployeeSeeder.Manager.Id
+                });
+            }
+        }
     }
 }

@@ -24,6 +24,6 @@ public sealed class EmployeeRoleConfiguration : IEntityTypeConfiguration<Employe
             .IsUnique();
 
         // Seed Data
-        builder.HasData(EmployeeRoleSeeder.GetRoles());
+        builder.HasData(EmployeeRoleSeeder.employeeRoles);
     }
 }
