@@ -1,10 +1,17 @@
 using Microsoft.Extensions.Options;
 
-namespace Restaurant.API.Configurations.Setup;
+namespace Restaurant.API.Security.Configurations;
+
+public sealed class JwtOptions
+{
+    public required string Issuer { get; init; }
+    public required string[] Audiences { get; init; }
+    public required string SecurityKey { get; init; }
+}
 
 public sealed class JwtOptionsSetup(IConfiguration configuration) : IConfigureOptions<JwtOptions>
 {
-    private const string SectionName = "JWT";
+    public const string SectionName = "JWT";
     private readonly IConfiguration _configuration = configuration;
 
     public void Configure(JwtOptions options)

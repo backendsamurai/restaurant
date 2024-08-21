@@ -1,35 +1,50 @@
+using Microsoft.EntityFrameworkCore;
+using Restaurant.API.Data;
 using Restaurant.API.Entities;
 
 namespace Restaurant.API.Repositories;
 
-public sealed class UserRepository : IUserRepository
+public sealed class UserRepository(RestaurantDbContext context) : IUserRepository
 {
-    public Task<User?> SelectById(Guid id)
+    private readonly RestaurantDbContext _context = context;
+
+    public Task<User?> SelectByIdAsync(Guid id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<User?> SelectByEmail(string email)
+    public async Task<User?> SelectByEmailAsync(string email) =>
+         await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+    public Task<User?> SelectByRoleAsync(UserRole role)
     {
         throw new NotImplementedException();
     }
 
-    public Task<User?> SelectByRole(UserRole role)
+    public async Task<User?> AddAsync(User user)
+    {
+        var transaction = _context.Database.BeginTransaction();
+
+        try
+        {
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return user;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
+    }
+
+    public Task UpdateAsync(Guid id, string email, string name, string passwordHash)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Guid> Add(User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Update(Guid id, string email, string name, string passwordHash)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Remove(Guid id)
+    public Task RemoveAsync(Guid id)
     {
         throw new NotImplementedException();
     }

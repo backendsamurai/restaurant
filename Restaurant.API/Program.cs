@@ -1,42 +1,33 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Restaurant.API.Configurations;
-using Restaurant.API.Configurations.Setup;
 using Restaurant.API.Data;
+using Restaurant.API.Mapping;
+using Restaurant.API.Repositories;
+using Restaurant.API.Security;
+using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services;
+using Restaurant.API.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+var connectionString = builder.Configuration.GetConnectionString("PostgreSQL");
+var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
 
-builder.Services.ConfigureOptions<JwtOptionsSetup>();
-builder.Services.ConfigureOptions<ManagerOptionsSetup>();
-
-builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    var jwtOptions = builder.Configuration.Get<JwtOptions>();
-
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidateLifetime = true,
-        ValidIssuer = jwtOptions?.Issuer,
-        ValidAudiences = jwtOptions?.Audiences,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions?.SecurityKey ?? ""))
-    };
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 });
 
-builder.Services.AddDbContext<RestaurantDbContext>(options =>
-    options
-        .UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL"))
-        .UseSnakeCaseNamingConvention()
-);
+builder.Services
+    .AddSecurityConfigurations()
+    .AddRepositories()
+    .AddInternalServices()
+    .AddValidators()
+    .AddMappings()
+    .AddSecurityAuthentication(jwtOptions)
+    .AddDatabaseContext(connectionString);
 
 var app = builder.Build();
 

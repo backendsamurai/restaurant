@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Restaurant.API.Configurations;
 using Restaurant.API.Data.EntityConfigurations;
 using Restaurant.API.Data.Seeders;
 using Restaurant.API.Entities;
+using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services;
 
 namespace Restaurant.API.Data;

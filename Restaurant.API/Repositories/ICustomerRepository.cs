@@ -4,9 +4,9 @@ namespace Restaurant.API.Repositories;
 
 public interface ICustomerRepository
 {
-    public Task<Customer?> SelectById(Guid id);
-    public Task<Customer?> SelectByEmail(string email);
-    public Task<Guid> Add(User user);
-    public Task<Customer?> Update(Guid id, string name, string email, string passwordHash);
-    public Task Remove(Guid id);
+    public IQueryable SelectById(Guid id);
+    public IQueryable SelectByEmail(string email);
+    public Task<Customer?> AddAsync(User user);
+    public Task<Customer?> UpdateAsync(Guid id, string name, string email, string passwordHash);
+    public Task RemoveAsync(Guid id);
 }
