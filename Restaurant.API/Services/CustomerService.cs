@@ -1,3 +1,5 @@
+using Ardalis.Result;
+using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +23,7 @@ public sealed class CustomerService(
     private readonly IValidator<CreateCustomerRequest> _validator = validator;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
 
-    public async Task<CustomerResponse?> CreateCustomerAsync(CreateCustomerRequest createCustomerRequest)
+    public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerRequest createCustomerRequest)
     {
         var validationResult = await _validator.ValidateAsync(createCustomerRequest);
 
@@ -33,7 +35,7 @@ public sealed class CustomerService(
 
             if (userFromDb is not null)
             {
-                return null;
+                return Result.Conflict(["cannot create customer with the same email address"]);
             }
 
             var user = new User
@@ -46,30 +48,38 @@ public sealed class CustomerService(
             await _userRepository.AddAsync(user);
             var customer = await _customerRepository.AddAsync(user);
 
-            return customer.Adapt<CustomerResponse>();
+            return Result.Success(customer.Adapt<CustomerResponse>());
         }
 
-        return null;
+        return Result.Invalid(validationResult.AsErrors());
     }
 
-    public async Task<CustomerResponse?> GetCustomerByEmailAsync(string email)
+    public async Task<Result<CustomerResponse>> GetCustomerByEmailAsync(string email)
     {
         if (EmailValidatorHelper.IsEmailValid(email))
         {
-            return await _customerRepository
+            var customer = await _customerRepository
                 .SelectByEmail(email)
-                .ProjectToType<CustomerResponse?>()
+                .ProjectToType<CustomerResponse>()
                 .FirstOrDefaultAsync();
+
+            return customer is null
+                ? Result.NotFound(["customer not found"])
+                : Result.Success(customer);
         }
 
-        return null;
+        return Result.Error("invalid format of email address");
     }
 
-    public async Task<CustomerResponse?> GetCustomerByIdAsync(Guid id)
+    public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {
-        return await _customerRepository
+        var customer = await _customerRepository
             .SelectById(id)
-            .ProjectToType<CustomerResponse?>()
+            .ProjectToType<CustomerResponse>()
             .FirstOrDefaultAsync();
+
+        return customer is null
+            ? Result.NotFound(["customer not found"])
+            : Result.Success(customer);
     }
 }
