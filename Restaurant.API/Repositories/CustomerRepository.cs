@@ -1,4 +1,8 @@
+using System.Linq.Expressions;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
 using Restaurant.API.Data;
 using Restaurant.API.Entities;
 
@@ -46,13 +50,41 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
         }
     }
 
-    public Task<Customer?> UpdateAsync(Guid id, string name, string email, string passwordHash)
+    public async Task<bool> UpdateAsync(User user)
     {
-        throw new NotImplementedException();
+        var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 
-    public Task RemoveAsync(Guid id)
+    public async Task<bool> RemoveAsync(Customer customer)
     {
-        throw new NotImplementedException();
+        var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await _context.Users.Where(u => u.Id == customer.User.Id).ExecuteDeleteAsync();
+            await _context.Customers.Where(c => c.Id == customer.Id).ExecuteDeleteAsync();
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 }
