@@ -7,6 +7,7 @@ public sealed class JwtOptions
     public required string Issuer { get; init; }
     public required string[] Audiences { get; init; }
     public required string SecurityKey { get; init; }
+    public int ExpireInMinutes { get; set; } = 60;
 }
 
 public sealed class JwtOptionsSetup(IConfiguration configuration) : IConfigureOptions<JwtOptions>
