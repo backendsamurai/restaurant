@@ -9,6 +9,8 @@ public static class DependencyInjection
     {
         return services
             .AddScoped<IValidator<CreateCustomerRequest>, CreateCustomerRequestValidator>()
-            .AddScoped<IValidator<UpdateCustomerRequest>, UpdateCustomerRequestValidator>();
+            .AddScoped<IValidator<UpdateCustomerRequest>, UpdateCustomerRequestValidator>()
+            .AddScoped<IValidator<CreateDeskRequest>, CreateDeskRequestValidator>()
+            .AddScoped<IValidator<UpdateDeskRequest>, UpdateDeskRequestValidator>();
     }
 }

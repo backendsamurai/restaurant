@@ -6,6 +6,7 @@ public static class DependencyInjection
     {
         return services
             .AddSingleton<IPasswordHasher, PasswordHasher>()
-            .AddScoped<ICustomerService, CustomerService>();
+            .AddScoped<ICustomerService, CustomerService>()
+            .AddScoped<IDeskService, DeskService>();
     }
 }
