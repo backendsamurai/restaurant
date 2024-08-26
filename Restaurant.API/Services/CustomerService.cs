@@ -87,6 +87,7 @@ public sealed class CustomerService(
 
     public async Task<Result<CustomerResponse>> UpdateCustomerAsync(Guid id, UpdateCustomerRequest updateCustomerRequest)
     {
+        bool isModified = false;
         var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
 
         if (customer is null)
@@ -101,6 +102,7 @@ public sealed class CustomerService(
                 return Result.Invalid(nameValidationResult.AsErrors());
 
             customer.User.Name = updateCustomerRequest.Name;
+            isModified = true;
         }
 
         if (updateCustomerRequest.Email is not null && updateCustomerRequest.Email != customer.User.Email)
@@ -112,6 +114,7 @@ public sealed class CustomerService(
                 return Result.Invalid(emailValidationResult.AsErrors());
 
             customer.User.Email = updateCustomerRequest.Email;
+            isModified = true;
         }
 
         if (updateCustomerRequest.Password is not null && !_passwordHasher.Verify(updateCustomerRequest.Password, customer.User.PasswordHash))
@@ -123,11 +126,17 @@ public sealed class CustomerService(
                 return Result.Invalid(passwordValidationResult.AsErrors());
 
             customer.User.PasswordHash = _passwordHasher.Hash(updateCustomerRequest.Password);
+            isModified = true;
         }
 
-        var isUpdated = await _customerRepository.UpdateAsync(customer.User);
+        if (isModified)
+        {
 
-        return isUpdated ? Result.Success(customer.Adapt<CustomerResponse>()) : Result.Error("cannot update customer");
+            var isUpdated = await _customerRepository.UpdateAsync(customer.User);
+            return isUpdated ? Result.Success(customer.Adapt<CustomerResponse>()) : Result.Error("cannot update customer");
+        }
+
+        return Result.Error("don`t need update customer");
     }
 
     public async Task<Result> RemoveCustomerAsync(Guid id)

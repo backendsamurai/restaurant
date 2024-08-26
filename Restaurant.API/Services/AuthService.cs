@@ -1,13 +1,15 @@
-using System.Security.Claims;
 using Ardalis.Result;
 using Ardalis.Result.FluentValidation;
 using FluentValidation;
+using Humanizer;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Dto.Requests;
 using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
 using Restaurant.API.Repositories;
+using Restaurant.API.Security.Models;
+using SystemClaims = System.Security.Claims;
 
 namespace Restaurant.API.Services;
 
@@ -41,10 +43,11 @@ public sealed class AuthService(
         if (!_passwordHasher.Verify(loginUserRequest.Password!, customer.User.PasswordHash))
             return Result.Error("wrong password");
 
-        var claims = new List<Claim>
+        var claims = new List<SystemClaims.Claim>
         {
-            new (ClaimTypes.Name,customer.User.Name, ClaimValueTypes.String),
-            new (ClaimTypes.Email, customer.User.Email, ClaimValueTypes.Email)
+            new (ClaimTypes.Name, customer.User.Name),
+            new (ClaimTypes.Email, customer.User.Email),
+            new (ClaimTypes.UserRole, customer.User.Role.ToString().Humanize(LetterCasing.LowerCase))
         };
 
         var tokenResult = _jwtService.GenerateToken(audience, claims);

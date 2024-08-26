@@ -1,6 +1,9 @@
+using System.Security.Claims;
+using Humanizer;
 using Mapster;
 using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
+using SecurityModels = Restaurant.API.Security.Models;
 
 namespace Restaurant.API.Mapping;
 
@@ -23,5 +26,12 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.UserEmail, s => s.Item1.User.Email)
             .Map(d => d.IsVerified, s => s.Item1.User.IsVerified)
             .Map(d => d.AccessToken, s => s.Item2);
+
+        config
+            .NewConfig<ClaimsPrincipal, SecurityModels.AuthenticatedUser>()
+            .Map(d => d.Name, s => s.FindFirstValue(SecurityModels.ClaimTypes.Name))
+            .Map(d => d.Email, s => s.FindFirstValue(SecurityModels.ClaimTypes.Email))
+            .Map(d => d.UserRole, s => Enum.Parse(typeof(UserRole), s.FindFirstValue(SecurityModels.ClaimTypes.UserRole).Dehumanize()))
+            .Map(d => d.EmployeeRole, s => s.FindFirstValue(SecurityModels.ClaimTypes.EmployeeRole));
     }
 }

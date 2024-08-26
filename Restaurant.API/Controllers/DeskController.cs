@@ -1,8 +1,10 @@
 using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.API.Dto.Requests;
 using Restaurant.API.Entities;
+using Restaurant.API.Security.Models;
 using Restaurant.API.Services;
 
 namespace Restaurant.API.Controllers;
@@ -25,12 +27,14 @@ public sealed class DeskController(IDeskService deskService) : ControllerBase
         => await _deskService.GetDeskByIdAsync(id);
 
     [TranslateResultToActionResult]
+    [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [ExpectedFailures(ResultStatus.Invalid, ResultStatus.Conflict, ResultStatus.Error)]
     [HttpPost]
     public async Task<Result<Desk>> CreateDesk([FromBody] CreateDeskRequest createDeskRequest) =>
         await _deskService.CreateDeskAsync(createDeskRequest);
 
     [TranslateResultToActionResult]
+    [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [ExpectedFailures(ResultStatus.Invalid, ResultStatus.NotFound, ResultStatus.Error)]
     [HttpPatch("{id:guid}")]
     public async Task<Result<Desk>> UpdateDesk(
@@ -39,6 +43,7 @@ public sealed class DeskController(IDeskService deskService) : ControllerBase
     ) => await _deskService.UpdateDeskAsync(id, updateDeskRequest);
 
     [TranslateResultToActionResult]
+    [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [ExpectedFailures(ResultStatus.NotFound, ResultStatus.Error)]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveDesk([FromRoute(Name = "id")] Guid id) =>

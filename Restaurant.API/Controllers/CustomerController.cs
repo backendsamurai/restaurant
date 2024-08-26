@@ -1,10 +1,14 @@
+using System.Text.Json;
 using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
+using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Restaurant.API.Dto.Requests;
 using Restaurant.API.Dto.Responses;
 using Restaurant.API.Security.Configurations;
+using Restaurant.API.Security.Models;
 using Restaurant.API.Services;
 
 namespace Restaurant.API.Controllers;
@@ -40,14 +44,23 @@ public sealed class CustomerController(
           await _customerService.CreateCustomerAsync(createCustomerRequest);
 
       [TranslateResultToActionResult]
+      [Authorize(AuthorizationPolicies.RequireCustomer)]
       [ExpectedFailures(ResultStatus.Invalid, ResultStatus.NotFound, ResultStatus.Error)]
       [HttpPatch("{id:guid}")]
       public async Task<Result<CustomerResponse>> UpdateCustomer(
          [FromRoute(Name = "id")] Guid id,
          [FromBody] UpdateCustomerRequest updateCustomerRequest
-      ) => await _customerService.UpdateCustomerAsync(id, updateCustomerRequest);
+      )
+      {
+            var authenticatedUser = User.Adapt<AuthenticatedUser>();
+
+            Console.WriteLine(JsonSerializer.Serialize(authenticatedUser));
+
+            return await _customerService.UpdateCustomerAsync(id, updateCustomerRequest);
+      }
 
       [TranslateResultToActionResult]
+      [Authorize(AuthorizationPolicies.RequireCustomer)]
       [ExpectedFailures(ResultStatus.NotFound, ResultStatus.Error)]
       [HttpDelete("{id:guid}")]
       public async Task<Result> RemoveCustomer([FromRoute(Name = "id")] Guid id) =>
