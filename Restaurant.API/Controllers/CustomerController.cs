@@ -50,7 +50,14 @@ public sealed class CustomerController(
       public async Task<Result<CustomerResponse>> UpdateCustomer(
          [FromRoute(Name = "id")] Guid id,
          [FromBody] UpdateCustomerRequest updateCustomerRequest
-      ) => await _customerService.UpdateAsync(id, updateCustomerRequest);
+      )
+      {
+            var authenticatedUser = User.Adapt<AuthenticatedUser>();
+
+            Console.WriteLine(JsonSerializer.Serialize(authenticatedUser));
+
+            return await _customerService.UpdateCustomerAsync(id, updateCustomerRequest);
+      }
 
       [TranslateResultToActionResult]
       [Authorize(AuthorizationPolicies.RequireCustomer)]
