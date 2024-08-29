@@ -1,41 +1,96 @@
+using Microsoft.EntityFrameworkCore;
+using Restaurant.API.Data;
 using Restaurant.API.Entities;
 
 namespace Restaurant.API.Repositories;
 
-public sealed class EmployeeRepository : IEmployeeRepository
+public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeRepository
 {
-    public Task<List<Employee>> SelectAll()
+    private readonly RestaurantDbContext _context = context;
+
+    public IQueryable<Employee> SelectAll() =>
+        _context.Employees
+            .Include(e => e.User)
+            .Include(e => e.Role)
+            .AsNoTracking()
+            .AsQueryable();
+
+    public IQueryable<Employee> SelectByEmail(string email) =>
+        _context.Employees
+            .Include(e => e.User)
+            .Include(e => e.Role)
+            .Where(e => e.User.Email == email)
+            .AsNoTracking()
+            .AsQueryable();
+
+    public IQueryable<Employee> SelectById(Guid id) =>
+        _context.Employees
+            .Include(e => e.User)
+            .Include(e => e.Role)
+            .Where(e => e.Id == id)
+            .AsNoTracking()
+            .AsQueryable();
+
+    public IQueryable<Employee> SelectByRole(string role) =>
+        _context.Employees
+            .Include(e => e.User)
+            .Include(e => e.Role)
+            .Where(e => e.Role.Name == role)
+            .AsNoTracking()
+            .AsQueryable();
+
+    public async Task<Employee?> AddAsync(Employee employee)
     {
-        throw new NotImplementedException();
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await _context.Employees.AddAsync(employee);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return employee;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
     }
 
-    public Task<Employee?> SelectByEmail(string email)
+    public async Task<bool> UpdateAsync(Employee employee)
     {
-        throw new NotImplementedException();
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 
-    public Task<Employee?> SelectById(Guid id)
+    public async Task<bool> RemoveAsync(Employee employee)
     {
-        throw new NotImplementedException();
-    }
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
-    public Task<List<Employee>> SelectByRole(string role)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Guid> Add(Employee employee)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Update(Guid id, string name, string email, string passwordHash)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task Remove(Guid id)
-    {
-        throw new NotImplementedException();
+        try
+        {
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 }

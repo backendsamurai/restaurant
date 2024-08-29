@@ -4,11 +4,11 @@ namespace Restaurant.API.Repositories;
 
 public interface IEmployeeRepository
 {
-    public Task<List<Employee>> SelectAll();
-    public Task<Employee?> SelectById(Guid id);
-    public Task<Employee?> SelectByEmail(string email);
-    public Task<List<Employee>> SelectByRole(string role);
-    public Task<Guid> Add(Employee employee);
-    public Task Update(Guid id, string name, string email, string passwordHash);
-    public Task Remove(Guid id);
+    public IQueryable<Employee> SelectAll();
+    public IQueryable<Employee> SelectById(Guid id);
+    public IQueryable<Employee> SelectByEmail(string email);
+    public IQueryable<Employee> SelectByRole(string role);
+    public Task<Employee?> AddAsync(Employee employee);
+    public Task<bool> UpdateAsync(Employee employee);
+    public Task<bool> RemoveAsync(Employee employee);
 }

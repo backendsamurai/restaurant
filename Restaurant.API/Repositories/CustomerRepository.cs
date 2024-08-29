@@ -8,7 +8,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
 {
     private readonly RestaurantDbContext _context = context;
 
-    public IQueryable SelectByEmail(string email)
+    public IQueryable<Customer> SelectByEmail(string email)
     {
         return _context.Customers
             .Include(c => c.User)
@@ -17,7 +17,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
             .AsNoTracking();
     }
 
-    public IQueryable SelectById(Guid id)
+    public IQueryable<Customer> SelectById(Guid id)
     {
         return _context.Customers
             .Include(c => c.User)
@@ -27,7 +27,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
     }
     public async Task<Customer?> AddAsync(User user)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -39,7 +39,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
 
             return customer;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return null;
@@ -48,7 +48,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
 
     public async Task<bool> UpdateAsync(User user)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -57,7 +57,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
             await transaction.CommitAsync();
             return true;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return false;
@@ -66,7 +66,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
 
     public async Task<bool> RemoveAsync(Customer customer)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -77,7 +77,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
             await transaction.CommitAsync();
             return true;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return false;

@@ -7,6 +7,7 @@ public static class DependencyInjection
         return services
             .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<ICustomerRepository, CustomerRepository>()
-            .AddScoped<IDeskRepository, DeskRepository>();
+            .AddScoped<IDeskRepository, DeskRepository>()
+            .AddScoped<IEmployeeRepository, EmployeeRepository>();
     }
 }
