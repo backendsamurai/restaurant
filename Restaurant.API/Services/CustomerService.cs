@@ -113,7 +113,7 @@ public sealed class CustomerService(
         if (updateCustomerRequest.Email is not null && updateCustomerRequest.Email != customer.User.Email)
         {
             var emailValidationResult = await _updateCustomerValidator
-            .ValidateAsync(updateCustomerRequest, options => options.IncludeProperties(u => u.Email));
+                .ValidateAsync(updateCustomerRequest, options => options.IncludeProperties(u => u.Email));
 
             if (!emailValidationResult.IsValid)
                 return Result.Invalid(emailValidationResult.AsErrors());
