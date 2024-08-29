@@ -1,5 +1,6 @@
 using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -47,15 +48,15 @@ public sealed class CustomerController(
       [HttpPatch("{id:guid}")]
       public async Task<Result<CustomerResponse>> UpdateCustomer(
          [FromRoute(Name = "id")] Guid id,
-         [FromBody] UpdateCustomerRequest updateCustomerRequest
-      ) => await _customerService.UpdateCustomerAsync(id, updateCustomerRequest);
+         [FromBody] UpdateCustomerRequest updateCustomerRequest) =>
+            await _customerService.UpdateCustomerAsync(id, User.Adapt<AuthenticatedUser>(), updateCustomerRequest);
 
       [TranslateResultToActionResult]
       [Authorize(AuthorizationPolicies.RequireCustomer)]
       [ExpectedFailures(ResultStatus.NotFound, ResultStatus.Error)]
       [HttpDelete("{id:guid}")]
       public async Task<Result> RemoveCustomer([FromRoute(Name = "id")] Guid id) =>
-            await _customerService.RemoveCustomerAsync(id);
+             await _customerService.RemoveCustomerAsync(id, User.Adapt<AuthenticatedUser>());
 
       [TranslateResultToActionResult]
       [ExpectedFailures(ResultStatus.Invalid, ResultStatus.Error, ResultStatus.NotFound)]

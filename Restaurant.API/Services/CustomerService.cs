@@ -7,6 +7,7 @@ using Restaurant.API.Dto.Requests;
 using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
 using Restaurant.API.Repositories;
+using Restaurant.API.Security.Models;
 using Restaurant.API.Validators.Helpers;
 
 namespace Restaurant.API.Services;
@@ -85,13 +86,17 @@ public sealed class CustomerService(
             : Result.Success(customer);
     }
 
-    public async Task<Result<CustomerResponse>> UpdateCustomerAsync(Guid id, UpdateCustomerRequest updateCustomerRequest)
+    public async Task<Result<CustomerResponse>> UpdateCustomerAsync(
+        Guid id, AuthenticatedUser authenticatedUser, UpdateCustomerRequest updateCustomerRequest)
     {
         bool isModified = false;
         var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
 
         if (customer is null)
             return Result.NotFound("customer not found");
+
+        if (customer.User.Email != authenticatedUser.Email)
+            return Result.Unauthorized();
 
         if (updateCustomerRequest.Name is not null && updateCustomerRequest.Name != customer.User.Name)
         {
@@ -139,12 +144,15 @@ public sealed class CustomerService(
         return Result.Error("don`t need update customer");
     }
 
-    public async Task<Result> RemoveCustomerAsync(Guid id)
+    public async Task<Result> RemoveCustomerAsync(Guid id, AuthenticatedUser authenticatedUser)
     {
         var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
 
         if (customer is null)
             return Result.NotFound("customer not found");
+
+        if (customer.User.Email != authenticatedUser.Email)
+            return Result.Unauthorized();
 
         var isRemoved = await _customerRepository.RemoveAsync(customer);
 
