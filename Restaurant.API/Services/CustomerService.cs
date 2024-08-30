@@ -34,7 +34,10 @@ public sealed class CustomerService(
         {
             var passwordHash = _passwordHasher.Hash(createCustomerRequest.Password!);
 
-            var userFromDb = await _userRepository.SelectByEmailAsync(createCustomerRequest.Email!);
+            var userFromDb = await _userRepository
+                .SelectByEmail(createCustomerRequest.Email!)
+                .ProjectToType<User>()
+                .FirstOrDefaultAsync();
 
             if (userFromDb is not null)
             {

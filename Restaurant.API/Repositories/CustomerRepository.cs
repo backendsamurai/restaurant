@@ -54,6 +54,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
+
             await transaction.CommitAsync();
             return true;
         }
@@ -72,9 +73,10 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
         {
             await _context.Users.Where(u => u.Id == customer.User.Id).ExecuteDeleteAsync();
             await _context.Customers.Where(c => c.Id == customer.Id).ExecuteDeleteAsync();
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return true;
         }
         catch (Exception)

@@ -1,31 +1,75 @@
+using Microsoft.EntityFrameworkCore;
+using Restaurant.API.Data;
 using Restaurant.API.Entities;
 
 namespace Restaurant.API.Repositories;
 
-public sealed class EmployeeRoleRepository : IEmployeeRoleRepository
+public sealed class EmployeeRoleRepository(RestaurantDbContext context) : IEmployeeRoleRepository
 {
-    public Task<List<EmployeeRole>> SelectAll()
+    private readonly RestaurantDbContext _context = context;
+
+    public IQueryable<EmployeeRole> SelectAll() =>
+        _context.EmployeeRoles
+            .AsNoTracking()
+            .AsQueryable();
+
+    public async Task<EmployeeRole?> AddAsync(EmployeeRole employeeRole)
     {
-        throw new NotImplementedException();
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await _context.EmployeeRoles.AddAsync(employeeRole);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return employeeRole;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
     }
 
-    public Task<Guid> Add(string name)
+    public async Task<bool> UpdateAsync(EmployeeRole employeeRole)
     {
-        throw new NotImplementedException();
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            _context.EmployeeRoles.Update(employeeRole);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 
-    public Task AddRange(string[] names)
+    public async Task<bool> RemoveAsync(EmployeeRole employeeRole)
     {
-        throw new NotImplementedException();
-    }
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
-    public Task Update(Guid id, string name)
-    {
-        throw new NotImplementedException();
-    }
+        try
+        {
+            _context.EmployeeRoles.Remove(employeeRole);
 
-    public Task Remove(Guid id)
-    {
-        throw new NotImplementedException();
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 }

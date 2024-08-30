@@ -46,6 +46,7 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
         try
         {
             await _context.Employees.AddAsync(employee);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -65,8 +66,10 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
         try
         {
             _context.Employees.Update(employee);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return true;
         }
         catch (Exception)
@@ -83,8 +86,10 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
         try
         {
             _context.Employees.Remove(employee);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return true;
         }
         catch (Exception)

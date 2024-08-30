@@ -19,18 +19,19 @@ public class DeskRepository(RestaurantDbContext context) : IDeskRepository
 
     public async Task<Desk?> CreateDeskAsync(string name)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             var desk = new Desk { Name = name };
             await _context.Desks.AddAsync(desk);
-            await _context.SaveChangesAsync();
 
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return desk;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return null;
@@ -39,16 +40,18 @@ public class DeskRepository(RestaurantDbContext context) : IDeskRepository
 
     public async Task<bool> UpdateDeskAsync(Desk desk)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             _context.Desks.Update(desk);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return true;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return false;
@@ -57,16 +60,18 @@ public class DeskRepository(RestaurantDbContext context) : IDeskRepository
 
     public async Task<bool> RemoveDeskAsync(Desk desk)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             _context.Desks.Remove(desk);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return true;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return false;

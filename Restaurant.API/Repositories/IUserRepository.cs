@@ -4,10 +4,10 @@ namespace Restaurant.API.Repositories;
 
 public interface IUserRepository
 {
-    public Task<User?> SelectByIdAsync(Guid id);
-    public Task<User?> SelectByEmailAsync(string email);
-    public Task<User?> SelectByRoleAsync(UserRole role);
+    public IQueryable<User> SelectById(Guid id);
+    public IQueryable<User> SelectByEmail(string email);
+    public IQueryable<User> SelectByRole(UserRole role);
     public Task<User?> AddAsync(User user);
-    public Task UpdateAsync(Guid id, string email, string name, string passwordHash);
-    public Task RemoveAsync(Guid id);
+    public Task<bool> UpdateAsync(User user);
+    public Task<bool> RemoveAsync(User user);
 }

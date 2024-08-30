@@ -8,44 +8,81 @@ public sealed class UserRepository(RestaurantDbContext context) : IUserRepositor
 {
     private readonly RestaurantDbContext _context = context;
 
-    public Task<User?> SelectByIdAsync(Guid id)
-    {
-        throw new NotImplementedException();
-    }
+    public IQueryable<User> SelectById(Guid id) =>
+        _context.Users
+            .Where(u => u.Id == id)
+            .AsNoTracking()
+            .AsQueryable();
 
-    public async Task<User?> SelectByEmailAsync(string email) =>
-         await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    public IQueryable<User> SelectByEmail(string email) =>
+        _context.Users
+            .Where(u => u.Email == email)
+            .AsNoTracking()
+            .AsQueryable();
 
-    public Task<User?> SelectByRoleAsync(UserRole role)
-    {
-        throw new NotImplementedException();
-    }
+    public IQueryable<User> SelectByRole(UserRole role) =>
+        _context.Users
+            .Where(u => u.Role == role)
+            .AsNoTracking()
+            .AsQueryable();
 
     public async Task<User?> AddAsync(User user)
     {
-        var transaction = _context.Database.BeginTransaction();
+        using var transaction = _context.Database.BeginTransaction();
 
         try
         {
             await _context.Users.AddAsync(user);
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
             return user;
         }
-        catch
+        catch (Exception)
         {
             await transaction.RollbackAsync();
             return null;
         }
     }
 
-    public Task UpdateAsync(Guid id, string email, string name, string passwordHash)
+    public async Task<bool> UpdateAsync(User user)
     {
-        throw new NotImplementedException();
+        using var transaction = _context.Database.BeginTransaction();
+
+        try
+        {
+            _context.Users.Update(user);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 
-    public Task RemoveAsync(Guid id)
+    public async Task<bool> RemoveAsync(User user)
     {
-        throw new NotImplementedException();
+        using var transaction = _context.Database.BeginTransaction();
+
+        try
+        {
+            _context.Users.Remove(user);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
     }
 }
