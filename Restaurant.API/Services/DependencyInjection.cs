@@ -9,6 +9,8 @@ public static class DependencyInjection
             .AddScoped<ICustomerService, CustomerService>()
             .AddScoped<IDeskService, DeskService>()
             .AddScoped<IJwtService, JwtService>()
-            .AddScoped<IAuthService, AuthService>();
+            .AddScoped<IAuthService, AuthService>()
+            .AddScoped<IEmployeeRoleService, EmployeeRoleService>()
+            .AddScoped<IEmployeeService, EmployeeService>();
     }
 }

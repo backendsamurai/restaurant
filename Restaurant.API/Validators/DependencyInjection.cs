@@ -12,6 +12,8 @@ public static class DependencyInjection
             .AddScoped<IValidator<UpdateCustomerRequest>, UpdateCustomerRequestValidator>()
             .AddScoped<IValidator<CreateDeskRequest>, CreateDeskRequestValidator>()
             .AddScoped<IValidator<UpdateDeskRequest>, UpdateDeskRequestValidator>()
-            .AddScoped<IValidator<LoginUserRequest>, LoginUserRequestValidator>();
+            .AddScoped<IValidator<LoginUserRequest>, LoginUserRequestValidator>()
+            .AddScoped<IValidator<CreateEmployeeRoleRequest>, CreateEmployeeRoleRequestValidator>()
+            .AddScoped<IValidator<UpdateEmployeeRoleRequest>, UpdateEmployeeRoleRequestValidator>();
     }
 }

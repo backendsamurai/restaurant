@@ -13,18 +13,32 @@ public sealed class EmployeeRoleRepository(RestaurantDbContext context) : IEmplo
             .AsNoTracking()
             .AsQueryable();
 
-    public async Task<EmployeeRole?> AddAsync(EmployeeRole employeeRole)
+    public IQueryable<EmployeeRole> SelectById(Guid id) =>
+        _context.EmployeeRoles
+            .Where(e => e.Id == id)
+            .AsNoTracking()
+            .AsQueryable();
+
+    public IQueryable<EmployeeRole> SelectByName(string name) =>
+        _context.EmployeeRoles
+            .Where(e => e.Name.Contains(name))
+            .AsNoTracking()
+            .AsQueryable();
+
+    public async Task<EmployeeRole?> AddAsync(string name)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
-            await _context.EmployeeRoles.AddAsync(employeeRole);
+            var role = new EmployeeRole { Name = name };
+
+            await _context.EmployeeRoles.AddAsync(role);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return employeeRole;
+            return role;
         }
         catch (Exception)
         {

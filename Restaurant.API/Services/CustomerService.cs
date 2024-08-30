@@ -139,7 +139,6 @@ public sealed class CustomerService(
 
         if (isModified)
         {
-
             var isUpdated = await _customerRepository.UpdateAsync(customer.User);
             return isUpdated ? Result.Success(customer.Adapt<CustomerResponse>()) : Result.Error("cannot update customer");
         }

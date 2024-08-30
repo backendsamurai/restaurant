@@ -60,4 +60,9 @@ public sealed class AuthService(
                 .Adapt<LoginCustomerResponse>()
         );
     }
+
+    public Task<Result<LoginEmployeeResponse>> LoginEmployeeAsync(string audience, LoginUserRequest loginUserRequest)
+    {
+        throw new NotImplementedException();
+    }
 }

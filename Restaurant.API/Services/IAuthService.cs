@@ -7,4 +7,5 @@ namespace Restaurant.API.Services;
 public interface IAuthService
 {
     public Task<Result<LoginCustomerResponse>> LoginCustomerAsync(string audience, LoginUserRequest loginUserRequest);
+    public Task<Result<LoginEmployeeResponse>> LoginEmployeeAsync(string audience, LoginUserRequest loginUserRequest);
 }
