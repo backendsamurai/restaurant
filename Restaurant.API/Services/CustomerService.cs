@@ -3,9 +3,8 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.API.Dto.Requests;
-using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Validators.Helpers;
@@ -15,27 +14,27 @@ namespace Restaurant.API.Services;
 public sealed class CustomerService(
     ICustomerRepository customerRepository,
     IUserRepository userRepository,
-    IValidator<CreateCustomerRequest> createCustomerValidator,
-    IValidator<UpdateCustomerRequest> updateCustomerValidator,
+    IValidator<CreateCustomerModel> createCustomerValidator,
+    IValidator<UpdateCustomerModel> updateCustomerValidator,
     IPasswordHasher passwordHasher
 ) : ICustomerService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
     private readonly IUserRepository _userRepository = userRepository;
-    private readonly IValidator<CreateCustomerRequest> _createCustomerValidator = createCustomerValidator;
-    private readonly IValidator<UpdateCustomerRequest> _updateCustomerValidator = updateCustomerValidator;
+    private readonly IValidator<CreateCustomerModel> _createCustomerValidator = createCustomerValidator;
+    private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
 
-    public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerRequest createCustomerRequest)
+    public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerModel createCustomerModel)
     {
-        var validationResult = await _createCustomerValidator.ValidateAsync(createCustomerRequest);
+        var validationResult = await _createCustomerValidator.ValidateAsync(createCustomerModel);
 
         if (validationResult.IsValid)
         {
-            var passwordHash = _passwordHasher.Hash(createCustomerRequest.Password!);
+            var passwordHash = _passwordHasher.Hash(createCustomerModel.Password!);
 
             var userFromDb = await _userRepository
-                .SelectByEmail(createCustomerRequest.Email!)
+                .SelectByEmail(createCustomerModel.Email!)
                 .ProjectToType<User>()
                 .FirstOrDefaultAsync();
 
@@ -46,8 +45,8 @@ public sealed class CustomerService(
 
             var user = new User
             {
-                Name = createCustomerRequest.Name!,
-                Email = createCustomerRequest.Email!,
+                Name = createCustomerModel.Name!,
+                Email = createCustomerModel.Email!,
                 PasswordHash = passwordHash
             };
 
@@ -90,7 +89,7 @@ public sealed class CustomerService(
     }
 
     public async Task<Result<CustomerResponse>> UpdateCustomerAsync(
-        Guid id, AuthenticatedUser authenticatedUser, UpdateCustomerRequest updateCustomerRequest)
+        Guid id, AuthenticatedUser authenticatedUser, UpdateCustomerModel updateCustomerModel)
     {
         bool isModified = false;
         var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
@@ -101,39 +100,39 @@ public sealed class CustomerService(
         if (customer.User.Email != authenticatedUser.Email)
             return Result.Unauthorized();
 
-        if (updateCustomerRequest.Name is not null && updateCustomerRequest.Name != customer.User.Name)
+        if (updateCustomerModel.Name is not null && updateCustomerModel.Name != customer.User.Name)
         {
             var nameValidationResult = await _updateCustomerValidator
-                .ValidateAsync(updateCustomerRequest, options => options.IncludeProperties(u => u.Name));
+                .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Name));
 
             if (!nameValidationResult.IsValid)
                 return Result.Invalid(nameValidationResult.AsErrors());
 
-            customer.User.Name = updateCustomerRequest.Name;
+            customer.User.Name = updateCustomerModel.Name;
             isModified = true;
         }
 
-        if (updateCustomerRequest.Email is not null && updateCustomerRequest.Email != customer.User.Email)
+        if (updateCustomerModel.Email is not null && updateCustomerModel.Email != customer.User.Email)
         {
             var emailValidationResult = await _updateCustomerValidator
-                .ValidateAsync(updateCustomerRequest, options => options.IncludeProperties(u => u.Email));
+                .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Email));
 
             if (!emailValidationResult.IsValid)
                 return Result.Invalid(emailValidationResult.AsErrors());
 
-            customer.User.Email = updateCustomerRequest.Email;
+            customer.User.Email = updateCustomerModel.Email;
             isModified = true;
         }
 
-        if (updateCustomerRequest.Password is not null && !_passwordHasher.Verify(updateCustomerRequest.Password, customer.User.PasswordHash))
+        if (updateCustomerModel.Password is not null && !_passwordHasher.Verify(updateCustomerModel.Password, customer.User.PasswordHash))
         {
             var passwordValidationResult = await _updateCustomerValidator
-                .ValidateAsync(updateCustomerRequest, options => options.IncludeProperties(u => u.Password));
+                .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Password));
 
             if (!passwordValidationResult.IsValid)
                 return Result.Invalid(passwordValidationResult.AsErrors());
 
-            customer.User.PasswordHash = _passwordHasher.Hash(updateCustomerRequest.Password);
+            customer.User.PasswordHash = _passwordHasher.Hash(updateCustomerModel.Password);
             isModified = true;
         }
 

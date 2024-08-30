@@ -1,25 +1,14 @@
 using FluentValidation;
-using Restaurant.API.Dto.Requests;
+using Restaurant.API.Models.User;
 using Restaurant.API.Validators.Helpers;
 
 namespace Restaurant.API.Validators;
 
-public sealed class UpdateCustomerRequestValidator : AbstractValidator<UpdateCustomerRequest>
+public sealed class LoginUserModelValidator : AbstractValidator<LoginUserModel>
 {
-    public UpdateCustomerRequestValidator()
+    public LoginUserModelValidator()
     {
-        RuleFor(u => u.Name)
-            .NotNull()
-                .WithMessage("name field is required")
-            .NotEmpty()
-                .WithMessage("name cannot be empty")
-            .MinimumLength(2)
-                .WithMessage("name must be longer than 2 characters")
-            .Must((v) => v is not null && v.Length > 0 && char.IsUpper(v[0]))
-                .WithMessage("the name must be capitalized")
-            .WithName("name");
-
-        RuleFor(u => u.Email)
+        RuleFor(c => c.Email)
             .NotNull()
                 .WithMessage("email field is required")
             .NotEmpty()
@@ -28,7 +17,7 @@ public sealed class UpdateCustomerRequestValidator : AbstractValidator<UpdateCus
                 .WithMessage("the email address format is incorrect")
             .WithName("email");
 
-        RuleFor(u => u.Password)
+        RuleFor(c => c.Password)
             .NotNull()
                 .WithMessage("password field is required")
             .NotEmpty()

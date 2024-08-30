@@ -3,21 +3,21 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.API.Dto.Requests;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Repositories;
 
 namespace Restaurant.API.Services;
 
 public sealed class EmployeeRoleService(
     IEmployeeRoleRepository employeeRoleRepository,
-    IValidator<CreateEmployeeRoleRequest> createEmployeeRoleRequestValidator,
-    IValidator<UpdateEmployeeRoleRequest> updateEmployeeRoleRequestValidator
+    IValidator<CreateEmployeeRoleModel> createEmployeeRoleModelValidator,
+    IValidator<UpdateEmployeeRoleModel> updateEmployeeRoleModelValidator
 ) : IEmployeeRoleService
 {
     private readonly IEmployeeRoleRepository _employeeRoleRepository = employeeRoleRepository;
-    private readonly IValidator<CreateEmployeeRoleRequest> _createEmployeeRoleRequestValidator = createEmployeeRoleRequestValidator;
-    private readonly IValidator<UpdateEmployeeRoleRequest> _updateEmployeeRoleRequestValidator = updateEmployeeRoleRequestValidator;
+    private readonly IValidator<CreateEmployeeRoleModel> _createEmployeeRoleModelValidator = createEmployeeRoleModelValidator;
+    private readonly IValidator<UpdateEmployeeRoleModel> _updateEmployeeRoleModelValidator = updateEmployeeRoleModelValidator;
 
     public async Task<Result<List<EmployeeRole>>> GetAllEmployeeRolesAsync() =>
         Result.Success(await _employeeRoleRepository.SelectAll().ToListAsync());
@@ -42,29 +42,29 @@ public sealed class EmployeeRoleService(
         return Result.Success(roles);
     }
 
-    public async Task<Result<EmployeeRole>> CreateEmployeeRoleAsync(CreateEmployeeRoleRequest createEmployeeRoleRequest)
+    public async Task<Result<EmployeeRole>> CreateEmployeeRoleAsync(CreateEmployeeRoleModel createEmployeeRoleModel)
     {
-        var validationResult = await _createEmployeeRoleRequestValidator.ValidateAsync(createEmployeeRoleRequest);
+        var validationResult = await _createEmployeeRoleModelValidator.ValidateAsync(createEmployeeRoleModel);
 
         if (!validationResult.IsValid)
             return Result.Invalid(validationResult.AsErrors());
 
         var roleFromDb = await _employeeRoleRepository
-            .SelectByName(createEmployeeRoleRequest.Name!)
+            .SelectByName(createEmployeeRoleModel.Name!)
             .ProjectToType<EmployeeRole>()
             .FirstOrDefaultAsync();
 
         if (roleFromDb is not null)
             return Result.Conflict("employee role with this name already exists");
 
-        var createdRole = await _employeeRoleRepository.AddAsync(createEmployeeRoleRequest.Name!);
+        var createdRole = await _employeeRoleRepository.AddAsync(createEmployeeRoleModel.Name!);
 
         return createdRole is null ? Result.Error("cannot create employee role") : Result.Success(createdRole);
     }
 
-    public async Task<Result<EmployeeRole>> UpdateEmployeeRoleAsync(Guid id, UpdateEmployeeRoleRequest updateEmployeeRoleRequest)
+    public async Task<Result<EmployeeRole>> UpdateEmployeeRoleAsync(Guid id, UpdateEmployeeRoleModel updateEmployeeRoleModel)
     {
-        var validationResult = await _updateEmployeeRoleRequestValidator.ValidateAsync(updateEmployeeRoleRequest);
+        var validationResult = await _updateEmployeeRoleModelValidator.ValidateAsync(updateEmployeeRoleModel);
 
         if (!validationResult.IsValid)
             return Result.Invalid(validationResult.AsErrors());
@@ -77,10 +77,10 @@ public sealed class EmployeeRoleService(
         if (role is null)
             return Result.NotFound("employee role not found");
 
-        if (role.Name == updateEmployeeRoleRequest.Name!)
+        if (role.Name == updateEmployeeRoleModel.Name!)
             return Result.Conflict("the employee role name is the same as in the database");
 
-        role.Name = updateEmployeeRoleRequest.Name!;
+        role.Name = updateEmployeeRoleModel.Name!;
 
         var isUpdated = await _employeeRoleRepository.UpdateAsync(role);
 

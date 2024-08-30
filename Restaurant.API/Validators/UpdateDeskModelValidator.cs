@@ -1,11 +1,11 @@
 using FluentValidation;
-using Restaurant.API.Dto.Requests;
+using Restaurant.API.Models.Desk;
 
 namespace Restaurant.API.Validators;
 
-public sealed class CreateDeskRequestValidator : AbstractValidator<CreateDeskRequest>
+public sealed class UpdateDeskModelValidator : AbstractValidator<UpdateDeskModel>
 {
-    public CreateDeskRequestValidator()
+    public UpdateDeskModelValidator()
     {
         RuleFor(c => c.Name)
             .NotNull()

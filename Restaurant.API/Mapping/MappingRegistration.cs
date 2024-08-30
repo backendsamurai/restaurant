@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Humanizer;
 using Mapster;
-using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.Customer;
 using SecurityModels = Restaurant.API.Security.Models;
 
 namespace Restaurant.API.Mapping;

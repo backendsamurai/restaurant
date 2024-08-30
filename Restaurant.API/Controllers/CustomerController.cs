@@ -4,8 +4,8 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Restaurant.API.Dto.Requests;
-using Restaurant.API.Dto.Responses;
+using Restaurant.API.Models.Customer;
+using Restaurant.API.Models.User;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Services;
@@ -39,8 +39,8 @@ public sealed class CustomerController(
       [TranslateResultToActionResult]
       [ExpectedFailures(ResultStatus.Conflict, ResultStatus.Invalid)]
       [HttpPost]
-      public async Task<Result<CustomerResponse>> CreateCustomer([FromBody] CreateCustomerRequest createCustomerRequest) =>
-          await _customerService.CreateCustomerAsync(createCustomerRequest);
+      public async Task<Result<CustomerResponse>> CreateCustomer([FromBody] CreateCustomerModel createCustomerModel) =>
+          await _customerService.CreateCustomerAsync(createCustomerModel);
 
       [TranslateResultToActionResult]
       [Authorize(AuthorizationPolicies.RequireCustomer)]
@@ -48,8 +48,8 @@ public sealed class CustomerController(
       [HttpPatch("{id:guid}")]
       public async Task<Result<CustomerResponse>> UpdateCustomer(
          [FromRoute(Name = "id")] Guid id,
-         [FromBody] UpdateCustomerRequest updateCustomerRequest) =>
-            await _customerService.UpdateCustomerAsync(id, User.Adapt<AuthenticatedUser>(), updateCustomerRequest);
+         [FromBody] UpdateCustomerModel updateCustomerModel) =>
+            await _customerService.UpdateCustomerAsync(id, User.Adapt<AuthenticatedUser>(), updateCustomerModel);
 
       [TranslateResultToActionResult]
       [Authorize(AuthorizationPolicies.RequireCustomer)]
@@ -61,7 +61,7 @@ public sealed class CustomerController(
       [TranslateResultToActionResult]
       [ExpectedFailures(ResultStatus.Invalid, ResultStatus.Error, ResultStatus.NotFound)]
       [HttpPost("authentication")]
-      public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync([FromBody] LoginUserRequest loginUserRequest)
+      public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync([FromBody] LoginUserModel loginUserModel)
       {
             string? audience = Request.Headers.FirstOrDefault(h => h.Key == "Audience").Value;
 
@@ -71,6 +71,6 @@ public sealed class CustomerController(
             if (!_jwtOptions.Audiences.Contains(audience))
                   return Result.Error("incorrect audience value in header");
 
-            return await _authService.LoginCustomerAsync(audience, loginUserRequest);
+            return await _authService.LoginCustomerAsync(audience, loginUserModel);
       }
 }

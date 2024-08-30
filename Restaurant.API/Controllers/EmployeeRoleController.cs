@@ -2,8 +2,8 @@ using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Dto.Requests;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Services;
 
@@ -40,8 +40,8 @@ public class EmployeeRoleController(
     [ExpectedFailures(ResultStatus.Invalid, ResultStatus.Error, ResultStatus.Conflict)]
     [HttpPost]
     public async Task<Result<EmployeeRole>> CreateRole(
-        [FromBody] CreateEmployeeRoleRequest createEmployeeRoleRequest
-    ) => await _employeeRoleService.CreateEmployeeRoleAsync(createEmployeeRoleRequest);
+        [FromBody] CreateEmployeeRoleModel createEmployeeRoleModel
+    ) => await _employeeRoleService.CreateEmployeeRoleAsync(createEmployeeRoleModel);
 
     [TranslateResultToActionResult]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
@@ -49,8 +49,8 @@ public class EmployeeRoleController(
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeRole>> UpdateRole(
         [FromRoute(Name = "id")] Guid id,
-        [FromBody] UpdateEmployeeRoleRequest updateEmployeeRoleRequest
-    ) => await _employeeRoleService.UpdateEmployeeRoleAsync(id, updateEmployeeRoleRequest);
+        [FromBody] UpdateEmployeeRoleModel updateEmployeeRoleModel
+    ) => await _employeeRoleService.UpdateEmployeeRoleAsync(id, updateEmployeeRoleModel);
 
     [TranslateResultToActionResult]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]

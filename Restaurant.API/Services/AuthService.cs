@@ -4,9 +4,10 @@ using FluentValidation;
 using Humanizer;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Restaurant.API.Dto.Requests;
-using Restaurant.API.Dto.Responses;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.Customer;
+using Restaurant.API.Models.Employee;
+using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
 using SystemClaims = System.Security.Claims;
@@ -17,30 +18,30 @@ public sealed class AuthService(
     ICustomerRepository customerRepository,
     IJwtService jwtService,
     IPasswordHasher passwordHasher,
-    IValidator<LoginUserRequest> loginUserValidator
+    IValidator<LoginUserModel> loginUserValidator
 ) : IAuthService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
     private readonly IJwtService _jwtService = jwtService;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
-    private readonly IValidator<LoginUserRequest> _loginUserValidator = loginUserValidator;
+    private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
 
-    public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync(string audience, LoginUserRequest loginUserRequest)
+    public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync(string audience, LoginUserModel loginUserModel)
     {
-        var validationResult = await _loginUserValidator.ValidateAsync(loginUserRequest);
+        var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
 
         if (!validationResult.IsValid)
             return Result.Invalid(validationResult.AsErrors());
 
         var customer = await _customerRepository
-            .SelectByEmail(loginUserRequest.Email!)
+            .SelectByEmail(loginUserModel.Email!)
             .ProjectToType<Customer>()
             .FirstOrDefaultAsync();
 
         if (customer is null)
             return Result.NotFound("customer not found");
 
-        if (!_passwordHasher.Verify(loginUserRequest.Password!, customer.User.PasswordHash))
+        if (!_passwordHasher.Verify(loginUserModel.Password!, customer.User.PasswordHash))
             return Result.Error("wrong password");
 
         var claims = new List<SystemClaims.Claim>
@@ -61,7 +62,7 @@ public sealed class AuthService(
         );
     }
 
-    public Task<Result<LoginEmployeeResponse>> LoginEmployeeAsync(string audience, LoginUserRequest loginUserRequest)
+    public Task<Result<LoginEmployeeResponse>> LoginEmployeeAsync(string audience, LoginUserModel loginUserModel)
     {
         throw new NotImplementedException();
     }

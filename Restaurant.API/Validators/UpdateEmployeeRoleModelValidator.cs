@@ -1,11 +1,11 @@
 using FluentValidation;
-using Restaurant.API.Dto.Requests;
+using Restaurant.API.Models.EmployeeRole;
 
 namespace Restaurant.API.Validators
 {
-    public class UpdateEmployeeRoleRequestValidator : AbstractValidator<UpdateEmployeeRoleRequest>
+    public class UpdateEmployeeRoleModelValidator : AbstractValidator<UpdateEmployeeRoleModel>
     {
-        public UpdateEmployeeRoleRequestValidator()
+        public UpdateEmployeeRoleModelValidator()
         {
             RuleFor(c => c.Name)
                 .NotNull().WithMessage("name of role must be set")

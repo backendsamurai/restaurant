@@ -1,12 +1,12 @@
 using Ardalis.Result;
-using Restaurant.API.Dto.Requests;
 using Restaurant.API.Entities;
+using Restaurant.API.Models.Employee;
 
 namespace Restaurant.API.Services;
 
 public sealed class EmployeeService : IEmployeeService
 {
-    public Task<Result<Employee>> CreateEmployeeAsync(CreateEmployeeRequest createEmployeeRequest)
+    public Task<Result<Employee>> CreateEmployeeAsync(CreateEmployeeModel createEmployeeModel)
     {
         throw new NotImplementedException();
     }
@@ -36,7 +36,7 @@ public sealed class EmployeeService : IEmployeeService
         throw new NotImplementedException();
     }
 
-    public Task<Result<Employee>> UpdateEmployeeAsync(Guid id, UpdateEmployeeRequest updateEmployeeRequest)
+    public Task<Result<Employee>> UpdateEmployeeAsync(Guid id, UpdateEmployeeModel updateEmployeeModel)
     {
         throw new NotImplementedException();
     }

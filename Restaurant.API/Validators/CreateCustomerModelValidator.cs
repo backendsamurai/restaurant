@@ -1,13 +1,12 @@
-using System.Text.RegularExpressions;
 using FluentValidation;
-using Restaurant.API.Dto.Requests;
+using Restaurant.API.Models.Customer;
 using Restaurant.API.Validators.Helpers;
 
 namespace Restaurant.API.Validators;
 
-public sealed class CreateCustomerRequestValidator : AbstractValidator<CreateCustomerRequest>
+public sealed class CreateCustomerModelValidator : AbstractValidator<CreateCustomerModel>
 {
-    public CreateCustomerRequestValidator()
+    public CreateCustomerModelValidator()
     {
         RuleFor(c => c.Name)
             .NotNull()
