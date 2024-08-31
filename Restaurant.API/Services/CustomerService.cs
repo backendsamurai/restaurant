@@ -7,7 +7,6 @@ using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
-using Restaurant.API.Validators.Helpers;
 
 namespace Restaurant.API.Services;
 
@@ -40,7 +39,7 @@ public sealed class CustomerService(
 
             if (userFromDb is not null)
             {
-                return Result.Conflict("cannot create customer with the same email address");
+                return Result.Conflict("customer with this email already exists");
             }
 
             var user = new User
@@ -59,22 +58,12 @@ public sealed class CustomerService(
         return Result.Invalid(validationResult.AsErrors());
     }
 
-    public async Task<Result<CustomerResponse>> GetCustomerByEmailAsync(string email)
-    {
-        if (EmailValidatorHelper.IsEmailValid(email))
-        {
-            var customer = await _customerRepository
-                .SelectByEmail(email)
-                .ProjectToType<CustomerResponse>()
-                .FirstOrDefaultAsync();
+    public async Task<Result<List<CustomerResponse>>> GetCustomerByEmailAsync(string email) =>
+        await _customerRepository
+            .SelectByEmail(email)
+            .ProjectToType<CustomerResponse>()
+            .ToListAsync();
 
-            return customer is null
-                ? Result.NotFound("customer not found")
-                : Result.Success(customer);
-        }
-
-        return Result.Error("invalid format of email address");
-    }
 
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {

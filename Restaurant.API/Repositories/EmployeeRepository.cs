@@ -19,7 +19,7 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
         _context.Employees
             .Include(e => e.User)
             .Include(e => e.Role)
-            .Where(e => e.User.Email == email)
+            .Where(e => e.User.Email.Contains(email))
             .AsNoTracking()
             .AsQueryable();
 
@@ -35,17 +35,19 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
         _context.Employees
             .Include(e => e.User)
             .Include(e => e.Role)
-            .Where(e => e.Role.Name == role)
+            .Where(e => e.Role.Name.Contains(role))
             .AsNoTracking()
             .AsQueryable();
 
-    public async Task<Employee?> AddAsync(Employee employee)
+    public async Task<Employee?> AddAsync(User user, EmployeeRole role)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
-            await _context.Employees.AddAsync(employee);
+            var employee = new Employee { User = user, Role = role };
+
+            _context.Attach(employee).State = EntityState.Added;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -65,7 +67,7 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
 
         try
         {
-            _context.Employees.Update(employee);
+            _context.Attach(employee).State = EntityState.Modified;
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -85,7 +87,8 @@ public sealed class EmployeeRepository(RestaurantDbContext context) : IEmployeeR
 
         try
         {
-            _context.Employees.Remove(employee);
+            await _context.Users.Where(u => u.Id == employee.User.Id).ExecuteDeleteAsync();
+            await _context.Employees.Where(e => e.Id == employee.Id).ExecuteDeleteAsync();
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

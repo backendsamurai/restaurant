@@ -12,7 +12,7 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
     {
         return _context.Customers
             .Include(c => c.User)
-            .Where(c => c.User.Email == email)
+            .Where(c => c.User.Email.Contains(email))
             .AsQueryable()
             .AsNoTracking();
     }

@@ -3,6 +3,7 @@ using Humanizer;
 using Mapster;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
+using Restaurant.API.Models.Employee;
 using SecurityModels = Restaurant.API.Security.Models;
 
 namespace Restaurant.API.Mapping;
@@ -33,5 +34,21 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Email, s => s.FindFirstValue(SecurityModels.ClaimTypes.Email))
             .Map(d => d.UserRole, s => Enum.Parse(typeof(UserRole), s.FindFirstValue(SecurityModels.ClaimTypes.UserRole).Dehumanize()))
             .Map(d => d.EmployeeRole, s => s.FindFirstValue(SecurityModels.ClaimTypes.EmployeeRole));
+
+        config
+            .NewConfig<Employee, EmployeeResponse>()
+            .Map(d => d.EmployeeId, s => s.Id)
+            .Map(d => d.UserId, s => s.User.Id)
+            .Map(d => d.UserName, s => s.User.Name)
+            .Map(d => d.UserEmail, s => s.User.Email)
+            .Map(d => d.IsVerified, s => s.User.IsVerified)
+            .Map(d => d.EmployeeRole, s => s.Role.Name);
+
+        config
+            .NewConfig<Tuple<CreateEmployeeModel, string>, User>()
+            .Map(d => d.Name, s => s.Item1.Name)
+            .Map(d => d.Email, s => s.Item1.Email)
+            .Map(d => d.PasswordHash, s => s.Item2)
+            .Map(d => d.Role, s => UserRole.Employee);
     }
 }

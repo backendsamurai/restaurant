@@ -33,7 +33,7 @@ public sealed class CustomerController(
       [TranslateResultToActionResult]
       [ExpectedFailures(ResultStatus.NotFound, ResultStatus.Error)]
       [HttpGet()]
-      public async Task<Result<CustomerResponse>> GetCustomerByEmail([FromQuery(Name = "email")] string email) =>
+      public async Task<Result<List<CustomerResponse>>> GetCustomerByEmail([FromQuery(Name = "email")] string email) =>
             await _customerService.GetCustomerByEmailAsync(email);
 
       [TranslateResultToActionResult]

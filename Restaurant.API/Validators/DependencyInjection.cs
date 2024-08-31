@@ -1,6 +1,7 @@
 using FluentValidation;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Desk;
+using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Models.User;
 
@@ -17,6 +18,8 @@ public static class DependencyInjection
             .AddScoped<IValidator<UpdateDeskModel>, UpdateDeskModelValidator>()
             .AddScoped<IValidator<LoginUserModel>, LoginUserModelValidator>()
             .AddScoped<IValidator<CreateEmployeeRoleModel>, CreateEmployeeRoleModelValidator>()
-            .AddScoped<IValidator<UpdateEmployeeRoleModel>, UpdateEmployeeRoleModelValidator>();
+            .AddScoped<IValidator<UpdateEmployeeRoleModel>, UpdateEmployeeRoleModelValidator>()
+            .AddScoped<IValidator<CreateEmployeeModel>, CreateEmployeeModelValidator>()
+            .AddScoped<IValidator<UpdateEmployeeModel>, UpdateEmployeeModelValidator>();
     }
 }
