@@ -3,8 +3,12 @@ using Ardalis.Result.AspNetCore;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Models.Employee;
+using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
+using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services.Contracts;
 
 namespace Restaurant.API.Controllers;
@@ -13,11 +17,15 @@ namespace Restaurant.API.Controllers;
 [Route("employees")]
 public sealed class EmployeeController(
     IEmployeeService employeeService,
-    IEmployeeRepository employeeRepository
+    IAuthService authService,
+    IEmployeeRepository employeeRepository,
+    IOptions<JwtOptions> jwtOptions
 ) : ControllerBase
 {
     private readonly IEmployeeService _employeeService = employeeService;
+    private readonly IAuthService _authService = authService;
     private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     [TranslateResultToActionResult]
     [HttpGet]
@@ -67,4 +75,17 @@ public sealed class EmployeeController(
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveEmployee([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.RemoveEmployeeAsync(id);
+
+    [TranslateResultToActionResult]
+    [ExpectedFailures(ResultStatus.Invalid, ResultStatus.NotFound, ResultStatus.Error)]
+    [HttpPost("authentication")]
+    public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel)
+    {
+        var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
+
+        if (audienceDetectResult.IsError())
+            return Result.Error(audienceDetectResult.Errors.First());
+
+        return await _authService.LoginEmployeeAsync(audienceDetectResult.Value, loginUserModel);
+    }
 }

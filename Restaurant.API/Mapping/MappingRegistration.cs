@@ -4,6 +4,7 @@ using Mapster;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Employee;
+using Restaurant.API.Models.User;
 using SecurityModels = Restaurant.API.Security.Models;
 
 namespace Restaurant.API.Mapping;
@@ -20,13 +21,14 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.IsVerified, s => s.User.IsVerified);
 
         config
-            .NewConfig<Tuple<Customer, string>, LoginCustomerResponse>()
-            .Map(d => d.CustomerId, s => s.Item1.Id)
-            .Map(d => d.UserId, s => s.Item1.User.Id)
-            .Map(d => d.UserName, s => s.Item1.User.Name)
-            .Map(d => d.UserEmail, s => s.Item1.User.Email)
-            .Map(d => d.IsVerified, s => s.Item1.User.IsVerified)
-            .Map(d => d.AccessToken, s => s.Item2);
+            .NewConfig<Tuple<User, Guid, string, string>, LoginUserResponse>()
+            .Map(d => d.Id, s => s.Item2)
+            .Map(d => d.UserId, s => s.Item1.Id)
+            .Map(d => d.UserName, s => s.Item1.Name)
+            .Map(d => d.UserEmail, s => s.Item1.Email)
+            .Map(d => d.IsVerified, s => s.Item1.IsVerified)
+            .Map(d => d.AccessToken, s => s.Item3)
+            .Map(d => d.EmployeeRole, s => string.IsNullOrEmpty(s.Item4) ? null : s.Item4);
 
         config
             .NewConfig<ClaimsPrincipal, SecurityModels.AuthenticatedUser>()

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Data;
 using Restaurant.API.Mapping;
@@ -18,14 +19,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
     options.JsonSerializerOptions.WriteIndented = true;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
 builder.Services
-    .AddSecurityConfigurations()
     .AddRepositories()
     .AddInternalServices()
     .AddValidators()
     .AddMappings()
+    .AddSecurityConfigurations()
+    .AddSecurityServices()
     .AddSecurityAuthentication(jwtOptions)
     .AddDatabaseContext(connectionString);
 

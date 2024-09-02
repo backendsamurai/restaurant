@@ -4,6 +4,7 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Configurations;
@@ -61,16 +62,13 @@ public sealed class CustomerController(
       [TranslateResultToActionResult]
       [ExpectedFailures(ResultStatus.Invalid, ResultStatus.Error, ResultStatus.NotFound)]
       [HttpPost("authentication")]
-      public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync([FromBody] LoginUserModel loginUserModel)
+      public async Task<Result<LoginUserResponse>> LoginCustomer([FromBody] LoginUserModel loginUserModel)
       {
-            string? audience = Request.Headers.FirstOrDefault(h => h.Key == "Audience").Value;
+            var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
 
-            if (string.IsNullOrEmpty(audience))
-                  return Result.Error("audience header not set or value is empty");
+            if (audienceDetectResult.IsError())
+                  return Result.Error(audienceDetectResult.Errors.First());
 
-            if (!_jwtOptions.Audiences.Contains(audience))
-                  return Result.Error("incorrect audience value in header");
-
-            return await _authService.LoginCustomerAsync(audience, loginUserModel);
+            return await _authService.LoginCustomerAsync(audienceDetectResult.Value, loginUserModel);
       }
 }
