@@ -5,6 +5,7 @@ using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
+using Restaurant.API.Services.Implementations;
 using SecurityModels = Restaurant.API.Security.Models;
 
 namespace Restaurant.API.Mapping;
@@ -52,5 +53,17 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Email, s => s.Item1.Email)
             .Map(d => d.PasswordHash, s => s.Item2)
             .Map(d => d.Role, s => UserRole.Employee);
+
+        config
+            .NewConfig<Customer, UserInfo>()
+            .Map(d => d.Id, s => s.Id)
+            .Map(d => d.User, s => s.User)
+            .Map(d => d.EmployeeRole, _ => string.Empty);
+
+        config
+            .NewConfig<Employee, UserInfo>()
+            .Map(d => d.Id, s => s.Id)
+            .Map(d => d.User, s => s.User)
+            .Map(d => d.EmployeeRole, s => s.Role.Name);
     }
 }

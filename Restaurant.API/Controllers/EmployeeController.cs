@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Restaurant.API.Controllers.Helpers;
+using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
@@ -86,6 +87,6 @@ public sealed class EmployeeController(
         if (audienceDetectResult.IsError())
             return Result.Error(audienceDetectResult.Errors.First());
 
-        return await _authService.LoginEmployeeAsync(audienceDetectResult.Value, loginUserModel);
+        return await _authService.LoginUserAsync(audienceDetectResult.Value, UserRole.Employee, loginUserModel);
     }
 }

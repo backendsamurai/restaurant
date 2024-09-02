@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Restaurant.API.Controllers.Helpers;
+using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Configurations;
@@ -69,6 +70,6 @@ public sealed class CustomerController(
             if (audienceDetectResult.IsError())
                   return Result.Error(audienceDetectResult.Errors.First());
 
-            return await _authService.LoginCustomerAsync(audienceDetectResult.Value, loginUserModel);
+            return await _authService.LoginUserAsync(audienceDetectResult.Value, UserRole.Customer, loginUserModel);
       }
 }

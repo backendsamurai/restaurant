@@ -11,7 +11,8 @@ namespace Restaurant.API.Data;
 public sealed class RestaurantDbContext(
     DbContextOptions options,
     IOptions<ManagerOptions> managerOptions,
-    IPasswordHasherService passwordHasher
+    IPasswordHasherService passwordHasher,
+    ILogger<RestaurantDbContext> logger
 ) : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
@@ -29,6 +30,14 @@ public sealed class RestaurantDbContext(
     {
         modelBuilder
             .ApplyConfigurationsFromAssembly(EntityConfigurationsAssembly.GetAssembly());
+
+        if (string.IsNullOrEmpty(managerOptions.Value.Name) ||
+            string.IsNullOrEmpty(managerOptions.Value.Email) ||
+            string.IsNullOrEmpty(managerOptions.Value.Password))
+        {
+            logger.LogCritical("Information about manager must be set in configuration");
+            return;
+        }
 
         var passwordHash = passwordHasher.Hash(managerOptions.Value.Password);
 
