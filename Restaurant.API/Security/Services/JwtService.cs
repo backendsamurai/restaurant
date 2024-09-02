@@ -5,8 +5,9 @@ using Ardalis.Result;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Restaurant.API.Security.Configurations;
+using Restaurant.API.Security.Services.Contracts;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Security.Services;
 
 public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IJwtService
 {

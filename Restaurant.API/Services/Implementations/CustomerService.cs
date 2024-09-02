@@ -7,22 +7,24 @@ using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
+using Restaurant.API.Security.Services.Contracts;
+using Restaurant.API.Services.Contracts;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Implementations;
 
 public sealed class CustomerService(
     ICustomerRepository customerRepository,
     IUserRepository userRepository,
     IValidator<CreateCustomerModel> createCustomerValidator,
     IValidator<UpdateCustomerModel> updateCustomerValidator,
-    IPasswordHasher passwordHasher
+    IPasswordHasherService passwordHasher
 ) : ICustomerService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IValidator<CreateCustomerModel> _createCustomerValidator = createCustomerValidator;
     private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IPasswordHasherService _passwordHasher = passwordHasher;
 
     public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerModel createCustomerModel)
     {

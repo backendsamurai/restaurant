@@ -3,7 +3,7 @@ using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Contracts;
 
 public interface IAuthService
 {

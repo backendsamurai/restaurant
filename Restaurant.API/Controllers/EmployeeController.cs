@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Repositories;
-using Restaurant.API.Services;
+using Restaurant.API.Services.Contracts;
 
 namespace Restaurant.API.Controllers;
 

@@ -6,14 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Repositories;
+using Restaurant.API.Security.Services.Contracts;
+using Restaurant.API.Services.Contracts;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Implementations;
 
 public sealed class EmployeeService(
     IUserRepository userRepository,
     IEmployeeRepository employeeRepository,
     IEmployeeRoleRepository employeeRoleRepository,
-    IPasswordHasher passwordHasher,
+    IPasswordHasherService passwordHasher,
     IValidator<CreateEmployeeModel> createEmployeeModelValidator,
     IValidator<UpdateEmployeeModel> updateEmployeeModelValidator
 ) : IEmployeeService
@@ -21,7 +23,7 @@ public sealed class EmployeeService(
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IEmployeeRepository _employeeRepository = employeeRepository;
     private readonly IEmployeeRoleRepository _employeeRoleRepository = employeeRoleRepository;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IPasswordHasherService _passwordHasher = passwordHasher;
     private readonly IValidator<CreateEmployeeModel> _createEmployeeModelValidator = createEmployeeModelValidator;
     private readonly IValidator<UpdateEmployeeModel> _updateEmployeeModelValidator = updateEmployeeModelValidator;
 

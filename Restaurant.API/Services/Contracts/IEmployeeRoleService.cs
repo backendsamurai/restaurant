@@ -2,7 +2,7 @@ using Ardalis.Result;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.EmployeeRole;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Contracts;
 
 public interface IEmployeeRoleService
 {

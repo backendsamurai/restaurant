@@ -5,18 +5,22 @@ using Microsoft.IdentityModel.Tokens;
 using Restaurant.API.Entities;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Models;
-using SystemClaims = System.Security.Claims;
+using Restaurant.API.Security.Services;
+using Restaurant.API.Security.Services.Contracts;
 
 namespace Restaurant.API.Security;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddSecurityConfigurations(this IServiceCollection services)
-    {
-        return services
+    public static IServiceCollection AddSecurityConfigurations(this IServiceCollection services) =>
+        services
             .ConfigureOptions<JwtOptionsSetup>()
             .ConfigureOptions<ManagerOptionsSetup>();
-    }
+
+    public static IServiceCollection AddSecurityServices(this IServiceCollection services) =>
+        services
+            .AddSingleton<IPasswordHasherService, PasswordHasherService>()
+            .AddScoped<IJwtService, JwtService>();
 
     public static IServiceCollection AddSecurityAuthentication(this IServiceCollection services, JwtOptions? jwtOptions)
     {

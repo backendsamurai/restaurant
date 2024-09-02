@@ -1,8 +1,9 @@
 using System.Security.Cryptography;
+using Restaurant.API.Security.Services.Contracts;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Security.Services;
 
-public sealed class PasswordHasher : IPasswordHasher
+public sealed class PasswordHasherService : IPasswordHasherService
 {
     private const int SaltSize = 16;
     private const int HashSize = 32;

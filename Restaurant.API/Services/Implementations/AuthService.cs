@@ -10,20 +10,22 @@ using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
+using Restaurant.API.Security.Services.Contracts;
+using Restaurant.API.Services.Contracts;
 using SystemClaims = System.Security.Claims;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Implementations;
 
 public sealed class AuthService(
     ICustomerRepository customerRepository,
     IJwtService jwtService,
-    IPasswordHasher passwordHasher,
+    IPasswordHasherService passwordHasher,
     IValidator<LoginUserModel> loginUserValidator
 ) : IAuthService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
     private readonly IJwtService _jwtService = jwtService;
-    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IPasswordHasherService _passwordHasher = passwordHasher;
     private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
 
     public async Task<Result<LoginCustomerResponse>> LoginCustomerAsync(string audience, LoginUserModel loginUserModel)

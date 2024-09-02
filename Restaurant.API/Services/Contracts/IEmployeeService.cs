@@ -1,7 +1,7 @@
 using Ardalis.Result;
 using Restaurant.API.Models.Employee;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Contracts;
 
 public interface IEmployeeService
 {

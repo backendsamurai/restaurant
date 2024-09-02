@@ -4,8 +4,9 @@ using FluentValidation;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Desk;
 using Restaurant.API.Repositories;
+using Restaurant.API.Services.Contracts;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Implementations;
 
 public sealed class DeskService(
     IDeskRepository repository,

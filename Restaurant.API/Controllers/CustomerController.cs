@@ -8,7 +8,7 @@ using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Models;
-using Restaurant.API.Services;
+using Restaurant.API.Services.Contracts;
 
 namespace Restaurant.API.Controllers;
 

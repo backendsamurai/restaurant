@@ -1,6 +1,6 @@
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Security.Services.Contracts;
 
-public interface IPasswordHasher
+public interface IPasswordHasherService
 {
     public string Hash(string password);
     public bool Verify(string password, string passwordHash);

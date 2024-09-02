@@ -4,14 +4,14 @@ using Restaurant.API.Data.EntityConfigurations;
 using Restaurant.API.Data.Seeders;
 using Restaurant.API.Entities;
 using Restaurant.API.Security.Configurations;
-using Restaurant.API.Services;
+using Restaurant.API.Security.Services.Contracts;
 
 namespace Restaurant.API.Data;
 
 public sealed class RestaurantDbContext(
     DbContextOptions options,
     IOptions<ManagerOptions> managerOptions,
-    IPasswordHasher passwordHasher
+    IPasswordHasherService passwordHasher
 ) : DbContext(options)
 {
     public DbSet<User> Users { get; set; }

@@ -2,7 +2,7 @@ using Ardalis.Result;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Security.Models;
 
-namespace Restaurant.API.Services;
+namespace Restaurant.API.Services.Contracts;
 
 public interface ICustomerService
 {
