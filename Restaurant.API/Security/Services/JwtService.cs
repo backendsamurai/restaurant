@@ -22,7 +22,7 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IJwtService
             issuer: _jwtOptions.Issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.Now.AddMinutes(_jwtOptions.ExpireInMinutes),
+            expires: DateTime.UtcNow.AddMinutes(_jwtOptions.ExpireInMinutes),
             signingCredentials: credentials
         );
 
