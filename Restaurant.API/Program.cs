@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Restaurant.API.Caching;
 using Restaurant.API.Data;
 using Restaurant.API.Mapping;
 using Restaurant.API.Repositories;
@@ -11,7 +12,8 @@ using Restaurant.API.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("PostgreSQL");
+var pgConnString = builder.Configuration.GetConnectionString("PostgreSQL");
+var redisConnString = builder.Configuration.GetConnectionString("RedisCache");
 var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
 
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -30,7 +32,10 @@ builder.Services
     .AddSecurityConfigurations()
     .AddSecurityServices()
     .AddSecurityAuthentication(jwtOptions)
-    .AddDatabaseContext(connectionString);
+    .AddDatabaseContext(pgConnString)
+    .AddRedisCaching(redisConnString)
+    .AddRedisIndexes()
+    .AddRedisModels();
 
 var app = builder.Build();
 
