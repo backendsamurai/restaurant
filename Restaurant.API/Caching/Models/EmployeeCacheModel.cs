@@ -4,17 +4,17 @@ using Redis.OM.Modeling;
 namespace Restaurant.API.Caching.Models;
 
 [Document(
-    IndexName = "customers-idx",
+    IndexName = "employees-idx",
     StorageType = StorageType.Json,
-    Prefixes = ["customers"]
+    Prefixes = ["employees"]
 )]
-public class CustomerCacheModel
+public class EmployeeCacheModel
 {
     [RedisIdField]
-    [Indexed(PropertyName = "customer_id")]
-    [RedisField(PropertyName = "customer_id")]
-    [JsonPropertyName("customer_id")]
-    public Guid CustomerId { get; set; }
+    [Indexed(PropertyName = "employee_id")]
+    [RedisField(PropertyName = "employee_id")]
+    [JsonPropertyName("employee_id")]
+    public Guid EmployeeId { get; set; }
 
     [Indexed(PropertyName = "user_id")]
     [RedisField(PropertyName = "user_id")]
@@ -35,4 +35,9 @@ public class CustomerCacheModel
     [RedisField(PropertyName = "is_verified")]
     [JsonPropertyName("is_verified")]
     public bool IsVerified { get; set; }
+
+    [Indexed(PropertyName = "employee_role")]
+    [RedisField(PropertyName = "employee_role")]
+    [JsonPropertyName("employee_role")]
+    public required string EmployeeRole { get; set; }
 }

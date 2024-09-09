@@ -4,20 +4,20 @@ using Redis.OM.Modeling;
 namespace Restaurant.API.Caching.Models;
 
 [Document(
-    IndexName = "desks-idx",
+    IndexName = "employees-roles-idx",
     StorageType = StorageType.Json,
-    Prefixes = ["desks"]
+    Prefixes = ["employee-roles"]
 )]
-public class DeskCacheModel
+public class EmployeeRoleCacheModel
 {
     [RedisIdField]
-    [Indexed(PropertyName = "id")]
     [RedisField(PropertyName = "id")]
+    [Indexed(PropertyName = "id")]
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
 
-    [Indexed(PropertyName = "name")]
     [RedisField(PropertyName = "name")]
+    [Indexed(PropertyName = "name")]
     [JsonPropertyName("name")]
     public required string Name { get; set; }
 }

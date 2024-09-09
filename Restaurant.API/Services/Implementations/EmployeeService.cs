@@ -3,7 +3,10 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Redis.OM.Searching;
+using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
+using Restaurant.API.Extensions;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Services.Contracts;
@@ -17,7 +20,8 @@ public sealed class EmployeeService(
     IEmployeeRoleRepository employeeRoleRepository,
     IPasswordHasherService passwordHasher,
     IValidator<CreateEmployeeModel> createEmployeeModelValidator,
-    IValidator<UpdateEmployeeModel> updateEmployeeModelValidator
+    IValidator<UpdateEmployeeModel> updateEmployeeModelValidator,
+    IRedisCollection<EmployeeCacheModel> cache
 ) : IEmployeeService
 {
     private readonly IUserRepository _userRepository = userRepository;
@@ -26,34 +30,30 @@ public sealed class EmployeeService(
     private readonly IPasswordHasherService _passwordHasher = passwordHasher;
     private readonly IValidator<CreateEmployeeModel> _createEmployeeModelValidator = createEmployeeModelValidator;
     private readonly IValidator<UpdateEmployeeModel> _updateEmployeeModelValidator = updateEmployeeModelValidator;
+    private readonly IRedisCollection<EmployeeCacheModel> _cache = cache;
 
     public async Task<Result<List<EmployeeResponse>>> GetAllEmployeesAsync() =>
-        await _employeeRepository
-            .SelectAll()
-            .ProjectToType<EmployeeResponse>()
-            .ToListAsync();
+        await _cache.GetOrSetAsync(
+            async () => await _employeeRepository.SelectAll().ProjectToType<EmployeeResponse>().ToListAsync());
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByEmailAsync(string email) =>
-         await _employeeRepository
-            .SelectByEmail(email)
-            .ProjectToType<EmployeeResponse>()
-            .ToListAsync();
+         await _cache.GetOrSetAsync(e => e.UserEmail.StartsWith(email),
+            async () => await _employeeRepository.SelectByEmail(email).ProjectToType<EmployeeResponse>().ToListAsync());
 
     public async Task<Result<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
     {
-        var employee = await _employeeRepository
-            .SelectById(id)
-            .ProjectToType<EmployeeResponse>()
-            .FirstOrDefaultAsync();
+        var employee = await _cache.GetOrSetAsync(e => e.EmployeeId == id,
+                async () => await _employeeRepository
+                    .SelectById(id)
+                    .ProjectToType<EmployeeResponse>()
+                    .FirstOrDefaultAsync());
 
         return employee is null ? Result.NotFound("employee not found") : Result.Success(employee);
     }
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByRoleAsync(string role) =>
-        await _employeeRepository
-            .SelectByRole(role)
-            .ProjectToType<EmployeeResponse>()
-            .ToListAsync();
+        await _cache.GetOrSetAsync(e => e.EmployeeRole.StartsWith(role),
+            async () => await _employeeRepository.SelectByRole(role).ProjectToType<EmployeeResponse>().ToListAsync());
 
     public async Task<Result<EmployeeResponse>> CreateEmployeeAsync(CreateEmployeeModel createEmployeeModel)
     {
@@ -87,9 +87,13 @@ public sealed class EmployeeService(
 
         var newEmployee = await _employeeRepository.AddAsync(newUser, employeeRole);
 
-        return newEmployee is null
-            ? Result.Error("cannot create employee")
-            : Result.Success(newEmployee.Adapt<EmployeeResponse>());
+        if (newEmployee is not null)
+        {
+            await _cache.InsertAsync(newEmployee);
+            return Result.Success(newEmployee.Adapt<EmployeeResponse>());
+        }
+
+        return Result.Error("cannot create employee");
     }
 
     public async Task<Result<EmployeeResponse>> UpdateEmployeeAsync(Guid id, UpdateEmployeeModel updateEmployeeModel)
@@ -163,7 +167,14 @@ public sealed class EmployeeService(
         if (isModified)
         {
             var isUpdated = await _employeeRepository.UpdateAsync(employee);
-            return isUpdated ? Result.Success(employee.Adapt<EmployeeResponse>()) : Result.Error("cannot update employee");
+
+            if (isUpdated)
+            {
+                await _cache.UpdateAsync(employee);
+                return Result.Success(employee.Adapt<EmployeeResponse>());
+            }
+
+            return Result.Error("cannot update employee");
         }
 
         return Result.Error("don`t need update employee");
@@ -181,6 +192,12 @@ public sealed class EmployeeService(
 
         var isRemoved = await _employeeRepository.RemoveAsync(employee);
 
-        return isRemoved ? Result.Success() : Result.Error("cannot remove employee");
+        if (isRemoved)
+        {
+            await _cache.DeleteAsync(employee);
+            return Result.Success();
+        }
+
+        return Result.Error("cannot remove employee");
     }
 }

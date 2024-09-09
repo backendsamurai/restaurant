@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Humanizer;
 using Mapster;
-using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Employee;
@@ -17,9 +16,10 @@ public sealed class MappingRegistration : IRegister
     {
         config
             .NewConfig<Customer, CustomerResponse>()
+            .Map(d => d.CustomerId, s => s.Id)
             .Map(d => d.UserId, s => s.User.Id)
-            .Map(d => d.Name, s => s.User.Name)
-            .Map(d => d.Email, s => s.User.Email)
+            .Map(d => d.UserName, s => s.User.Name)
+            .Map(d => d.UserEmail, s => s.User.Email)
             .Map(d => d.IsVerified, s => s.User.IsVerified);
 
         config
@@ -66,10 +66,5 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Id, s => s.Id)
             .Map(d => d.User, s => s.User)
             .Map(d => d.EmployeeRole, s => s.Role.Name);
-
-        config
-            .NewConfig<Desk, DeskCacheModel>()
-            .Map(d => d.Id, s => s.Id)
-            .Map(d => d.Name, s => s.Name);
     }
 }

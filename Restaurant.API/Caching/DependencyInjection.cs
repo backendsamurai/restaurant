@@ -10,9 +10,8 @@ public static class DependencyInjection
         if (string.IsNullOrEmpty(connectionString))
             throw new ArgumentNullException(nameof(connectionString), "connectionString is null");
 
-        var provider = new RedisConnectionProvider(connectionString);
-
-        return services.AddScoped((_) => provider);
+        return services
+            .AddSingleton((_) => new RedisConnectionProvider(connectionString));
     }
 
     public static IServiceCollection AddRedisIndexes(this IServiceCollection services)
@@ -21,21 +20,28 @@ public static class DependencyInjection
         var provider = serviceProvider.GetRequiredService<RedisConnectionProvider>()
             ?? throw new InvalidOperationException("cannot register indexes for redis cache");
 
-        provider.Connection.CreateIndex(typeof(DeskCacheModel));
-        provider.Connection.CreateIndex(typeof(CustomerCacheModel));
+        try
+        {
+            provider.Connection.CreateIndex(typeof(EmployeeRoleCacheModel));
+            provider.Connection.CreateIndex(typeof(EmployeeCacheModel));
+            provider.Connection.CreateIndex(typeof(CustomerCacheModel));
+            provider.Connection.CreateIndex(typeof(DeskCacheModel));
+        }
+        catch { }
 
         return services;
     }
-
 
     public static IServiceCollection AddRedisModels(this IServiceCollection services)
     {
         var serviceProvider = services.BuildServiceProvider();
         var provider = serviceProvider.GetRequiredService<RedisConnectionProvider>()
-                   ?? throw new InvalidOperationException("cannot register indexes for redis cache");
+                   ?? throw new InvalidOperationException("cannot register models for redis cache");
 
         return services
             .AddScoped((_) => provider.RedisCollection<DeskCacheModel>())
-            .AddScoped((_) => provider.RedisCollection<CustomerCacheModel>());
+            .AddScoped((_) => provider.RedisCollection<CustomerCacheModel>())
+            .AddScoped((_) => provider.RedisCollection<EmployeeCacheModel>())
+            .AddScoped((_) => provider.RedisCollection<EmployeeRoleCacheModel>());
     }
 }

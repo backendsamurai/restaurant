@@ -2,6 +2,7 @@ using Ardalis.Result;
 using Ardalis.Result.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Security.Models;
@@ -23,7 +24,14 @@ public class EmployeeRoleController(
     public async Task<Result<List<EmployeeRole>>> GetAllRoles([FromQuery(Name = "name")] string? name)
     {
         if (!string.IsNullOrEmpty(name))
+        {
+            var validationResult = QueryValidationHelper.Validate(name);
+
+            if (validationResult.IsInvalid())
+                return Result.Invalid(validationResult.ValidationErrors);
+
             return await _employeeRoleService.GetEmployeeRoleByNameAsync(name);
+        }
 
         return await _employeeRoleService.GetAllEmployeeRolesAsync();
     }

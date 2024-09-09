@@ -1,7 +1,6 @@
 using Ardalis.Result;
 using Ardalis.Result.FluentValidation;
 using FluentValidation;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
@@ -52,7 +51,7 @@ public sealed class DeskService(
 
         if (newDesk is not null)
         {
-            await _cache.InsertAsync(newDesk.Adapt<DeskCacheModel>());
+            await _cache.InsertAsync(newDesk);
             return Result.Success(newDesk);
         }
 
@@ -80,7 +79,7 @@ public sealed class DeskService(
 
         if (isUpdated)
         {
-            await _cache.UpdateAsync(desk.Adapt<DeskCacheModel>());
+            await _cache.UpdateAsync(desk);
             return Result.Success(desk);
         }
 
@@ -98,7 +97,7 @@ public sealed class DeskService(
 
         if (isRemoved)
         {
-            await _cache.DeleteAsync(desk.Adapt<DeskCacheModel>());
+            await _cache.DeleteAsync(desk);
             return Result.Success();
         }
 

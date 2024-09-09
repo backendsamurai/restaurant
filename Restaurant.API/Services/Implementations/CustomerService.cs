@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
+using Restaurant.API.Extensions;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
@@ -44,9 +45,7 @@ public sealed class CustomerService(
                 .FirstOrDefaultAsync();
 
             if (userFromDb is not null)
-            {
                 return Result.Conflict("customer with this email already exists");
-            }
 
             var user = new User
             {
@@ -60,9 +59,9 @@ public sealed class CustomerService(
 
             if (customer is not null)
             {
-                var response = customer.Adapt<CustomerResponse>();
-                await _cache.InsertAsync(response.Adapt<CustomerCacheModel>());
-                return Result.Success(response);
+                var customerResponse = customer.Adapt<CustomerResponse>();
+                await _cache.InsertAsync(customerResponse);
+                return Result.Success(customerResponse);
             }
 
             return Result.Error("cannot create customer");
@@ -73,16 +72,10 @@ public sealed class CustomerService(
 
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {
-        var cachedCustomer = await _cache.FirstOrDefaultAsync(c => c.Id == id);
+        var customer = await _cache.GetOrSetAsync(c => c.CustomerId == id,
+            async () => await _customerRepository.SelectById(id).ProjectToType<CustomerResponse>().FirstOrDefaultAsync());
 
-        if (cachedCustomer is not null)
-            return Result.Success(cachedCustomer.Adapt<CustomerResponse>());
-
-        var customer = await _customerRepository.SelectById(id).ProjectToType<CustomerResponse>().FirstOrDefaultAsync();
-
-        return customer is null
-            ? Result.NotFound("customer not found")
-            : Result.Success(customer);
+        return customer is null ? Result.NotFound("customer not found") : Result.Success(customer);
     }
 
     public async Task<Result<CustomerResponse>> UpdateCustomerAsync(
@@ -139,9 +132,9 @@ public sealed class CustomerService(
 
             if (isUpdated)
             {
-                var response = customer.Adapt<CustomerResponse>();
-                await _cache.UpdateAsync(response.Adapt<CustomerCacheModel>());
-                return Result.Success(response);
+                var customerResponse = customer.Adapt<CustomerResponse>();
+                await _cache.UpdateAsync(customerResponse);
+                return Result.Success(customerResponse);
             }
 
             return Result.Error("cannot update customer");
@@ -164,7 +157,7 @@ public sealed class CustomerService(
 
         if (isRemoved)
         {
-            await _cache.DeleteAsync(customer.Adapt<CustomerCacheModel>());
+            await _cache.DeleteAsync(customer);
             return Result.Success();
         }
 

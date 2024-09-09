@@ -34,10 +34,22 @@ public sealed class EmployeeController(
         [FromQuery(Name = "email")] string? email, [FromQuery(Name = "role")] string? role)
     {
         if (!string.IsNullOrEmpty(email))
+        {
+            var validationResult = QueryValidationHelper.Validate(email);
+            if (validationResult.IsInvalid())
+                return Result.Invalid(validationResult.ValidationErrors);
+
             return await _employeeService.GetEmployeeByEmailAsync(email);
+        }
 
         if (!string.IsNullOrEmpty(role))
+        {
+            var validationResult = QueryValidationHelper.Validate(role);
+            if (validationResult.IsInvalid())
+                return Result.Invalid(validationResult.ValidationErrors);
+
             return await _employeeService.GetEmployeeByRoleAsync(role);
+        }
 
         if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(role))
         {
