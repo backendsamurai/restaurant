@@ -8,14 +8,20 @@ public class DeskRepository(RestaurantDbContext context) : IDeskRepository
 {
     private readonly RestaurantDbContext _context = context;
 
-    public Task<List<Desk>> SelectAllDesksAsync() =>
-        _context.Desks.ToListAsync();
+    public IQueryable<Desk> SelectAllDesks() =>
+        _context.Desks.AsNoTracking().AsQueryable();
 
-    public Task<Desk?> SelectDeskByIdAsync(Guid id) =>
-        _context.Desks.FirstOrDefaultAsync(d => d.Id == id);
+    public IQueryable<Desk> SelectDeskById(Guid id) =>
+        _context.Desks
+            .Where(d => d.Id == id)
+            .AsNoTracking()
+            .AsQueryable();
 
-    public Task<Desk?> SelectDeskByNameAsync(string name) =>
-        _context.Desks.FirstOrDefaultAsync(d => d.Name == name);
+    public IQueryable<Desk> SelectDeskByName(string name) =>
+        _context.Desks
+            .Where(d => d.Name == name)
+            .AsNoTracking()
+            .AsQueryable();
 
     public async Task<Desk?> CreateDeskAsync(string name)
     {

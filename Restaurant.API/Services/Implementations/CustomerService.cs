@@ -3,7 +3,10 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Redis.OM.Searching;
+using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
+using Restaurant.API.Extensions;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
@@ -17,7 +20,8 @@ public sealed class CustomerService(
     IUserRepository userRepository,
     IValidator<CreateCustomerModel> createCustomerValidator,
     IValidator<UpdateCustomerModel> updateCustomerValidator,
-    IPasswordHasherService passwordHasher
+    IPasswordHasherService passwordHasher,
+    IRedisCollection<CustomerCacheModel> cache
 ) : ICustomerService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
@@ -25,6 +29,7 @@ public sealed class CustomerService(
     private readonly IValidator<CreateCustomerModel> _createCustomerValidator = createCustomerValidator;
     private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
     private readonly IPasswordHasherService _passwordHasher = passwordHasher;
+    private readonly IRedisCollection<CustomerCacheModel> _cache = cache;
 
     public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerModel createCustomerModel)
     {
@@ -40,9 +45,7 @@ public sealed class CustomerService(
                 .FirstOrDefaultAsync();
 
             if (userFromDb is not null)
-            {
                 return Result.Conflict("customer with this email already exists");
-            }
 
             var user = new User
             {
@@ -54,29 +57,25 @@ public sealed class CustomerService(
             await _userRepository.AddAsync(user);
             var customer = await _customerRepository.AddAsync(user);
 
-            return Result.Success(customer.Adapt<CustomerResponse>());
+            if (customer is not null)
+            {
+                var customerResponse = customer.Adapt<CustomerResponse>();
+                await _cache.InsertAsync(customerResponse);
+                return Result.Success(customerResponse);
+            }
+
+            return Result.Error("cannot create customer");
         }
 
         return Result.Invalid(validationResult.AsErrors());
     }
 
-    public async Task<Result<List<CustomerResponse>>> GetCustomerByEmailAsync(string email) =>
-        await _customerRepository
-            .SelectByEmail(email)
-            .ProjectToType<CustomerResponse>()
-            .ToListAsync();
-
-
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {
-        var customer = await _customerRepository
-            .SelectById(id)
-            .ProjectToType<CustomerResponse>()
-            .FirstOrDefaultAsync();
+        var customer = await _cache.GetOrSetAsync(c => c.CustomerId == id,
+            async () => await _customerRepository.SelectById(id).ProjectToType<CustomerResponse>().FirstOrDefaultAsync());
 
-        return customer is null
-            ? Result.NotFound("customer not found")
-            : Result.Success(customer);
+        return customer is null ? Result.NotFound("customer not found") : Result.Success(customer);
     }
 
     public async Task<Result<CustomerResponse>> UpdateCustomerAsync(
@@ -130,7 +129,15 @@ public sealed class CustomerService(
         if (isModified)
         {
             var isUpdated = await _customerRepository.UpdateAsync(customer.User);
-            return isUpdated ? Result.Success(customer.Adapt<CustomerResponse>()) : Result.Error("cannot update customer");
+
+            if (isUpdated)
+            {
+                var customerResponse = customer.Adapt<CustomerResponse>();
+                await _cache.UpdateAsync(customerResponse);
+                return Result.Success(customerResponse);
+            }
+
+            return Result.Error("cannot update customer");
         }
 
         return Result.Error("don`t need update customer");
@@ -148,6 +155,12 @@ public sealed class CustomerService(
 
         var isRemoved = await _customerRepository.RemoveAsync(customer);
 
-        return isRemoved ? Result.Success() : Result.Error("cannot remove customer from database");
+        if (isRemoved)
+        {
+            await _cache.DeleteAsync(customer);
+            return Result.Success();
+        }
+
+        return Result.Error("cannot remove customer from database");
     }
 }

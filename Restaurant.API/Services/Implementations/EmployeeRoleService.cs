@@ -3,7 +3,11 @@ using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Redis.OM;
+using Redis.OM.Searching;
+using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
+using Restaurant.API.Extensions;
 using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
@@ -13,32 +17,30 @@ namespace Restaurant.API.Services.Implementations;
 public sealed class EmployeeRoleService(
     IEmployeeRoleRepository employeeRoleRepository,
     IValidator<CreateEmployeeRoleModel> createEmployeeRoleModelValidator,
-    IValidator<UpdateEmployeeRoleModel> updateEmployeeRoleModelValidator
+    IValidator<UpdateEmployeeRoleModel> updateEmployeeRoleModelValidator,
+    IRedisCollection<EmployeeRoleCacheModel> cache
 ) : IEmployeeRoleService
 {
     private readonly IEmployeeRoleRepository _employeeRoleRepository = employeeRoleRepository;
     private readonly IValidator<CreateEmployeeRoleModel> _createEmployeeRoleModelValidator = createEmployeeRoleModelValidator;
     private readonly IValidator<UpdateEmployeeRoleModel> _updateEmployeeRoleModelValidator = updateEmployeeRoleModelValidator;
+    private readonly IRedisCollection<EmployeeRoleCacheModel> _cache = cache;
 
     public async Task<Result<List<EmployeeRole>>> GetAllEmployeeRolesAsync() =>
-        Result.Success(await _employeeRoleRepository.SelectAll().ToListAsync());
+        await _cache.GetOrSetAsync(async () => await _employeeRoleRepository.SelectAll().ToListAsync());
 
     public async Task<Result<EmployeeRole>> GetEmployeeRoleByIdAsync(Guid id)
     {
-        var role = await _employeeRoleRepository
-            .SelectById(id)
-            .ProjectToType<EmployeeRole>()
-            .FirstOrDefaultAsync();
+        var role = await _cache.GetOrSetAsync(er => er.Id == id,
+            async () => await _employeeRoleRepository.SelectById(id).ProjectToType<EmployeeRole>().FirstOrDefaultAsync());
 
         return role is null ? Result.NotFound("employee role not found") : Result.Success(role);
     }
 
     public async Task<Result<List<EmployeeRole>>> GetEmployeeRoleByNameAsync(string name)
     {
-        var roles = await _employeeRoleRepository
-            .SelectByName(name)
-            .ProjectToType<EmployeeRole>()
-            .ToListAsync();
+        var roles = await _cache.GetOrSetAsync(r => r.Name.Contains(name),
+            async () => await _employeeRoleRepository.SelectByName(name).ProjectToType<EmployeeRole>().ToListAsync());
 
         return Result.Success(roles);
     }
@@ -60,7 +62,13 @@ public sealed class EmployeeRoleService(
 
         var createdRole = await _employeeRoleRepository.AddAsync(createEmployeeRoleModel.Name!);
 
-        return createdRole is null ? Result.Error("cannot create employee role") : Result.Success(createdRole);
+        if (createdRole is not null)
+        {
+            await _cache.InsertAsync(createdRole);
+            return Result.Success(createdRole);
+        }
+
+        return Result.Error("cannot create employee role");
     }
 
     public async Task<Result<EmployeeRole>> UpdateEmployeeRoleAsync(Guid id, UpdateEmployeeRoleModel updateEmployeeRoleModel)
@@ -85,7 +93,13 @@ public sealed class EmployeeRoleService(
 
         var isUpdated = await _employeeRoleRepository.UpdateAsync(role);
 
-        return isUpdated ? Result.Success(role) : Result.Error("cannot update employee role");
+        if (isUpdated)
+        {
+            await _cache.UpdateAsync(role);
+            return Result.Success(role);
+        }
+
+        return Result.Error("cannot update employee role");
     }
 
     public async Task<Result> RemoveEmployeeRoleAsync(Guid id)
@@ -100,6 +114,12 @@ public sealed class EmployeeRoleService(
 
         var isRemoved = await _employeeRoleRepository.RemoveAsync(role);
 
-        return isRemoved ? Result.Success() : Result.Error("cannot remove employee role");
+        if (isRemoved)
+        {
+            await _cache.DeleteAsync(role);
+            return Result.Success();
+        }
+
+        return Result.Error("cannot remove employee role");
     }
 }

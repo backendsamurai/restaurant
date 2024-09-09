@@ -8,23 +8,21 @@ public sealed class CustomerRepository(RestaurantDbContext context) : ICustomerR
 {
     private readonly RestaurantDbContext _context = context;
 
-    public IQueryable<Customer> SelectByEmail(string email)
-    {
-        return _context.Customers
+    public IQueryable<Customer> SelectByEmail(string email) =>
+        _context.Customers
             .Include(c => c.User)
             .Where(c => c.User.Email.Contains(email))
             .AsQueryable()
             .AsNoTracking();
-    }
 
-    public IQueryable<Customer> SelectById(Guid id)
-    {
-        return _context.Customers
+
+    public IQueryable<Customer> SelectById(Guid id) =>
+        _context.Customers
             .Include(c => c.User)
             .Where(c => c.Id == id)
             .AsQueryable()
             .AsNoTracking();
-    }
+
     public async Task<Customer?> AddAsync(User user)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();

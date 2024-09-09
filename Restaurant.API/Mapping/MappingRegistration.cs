@@ -16,9 +16,10 @@ public sealed class MappingRegistration : IRegister
     {
         config
             .NewConfig<Customer, CustomerResponse>()
+            .Map(d => d.CustomerId, s => s.Id)
             .Map(d => d.UserId, s => s.User.Id)
-            .Map(d => d.Name, s => s.User.Name)
-            .Map(d => d.Email, s => s.User.Email)
+            .Map(d => d.UserName, s => s.User.Name)
+            .Map(d => d.UserEmail, s => s.User.Email)
             .Map(d => d.IsVerified, s => s.User.IsVerified);
 
         config
