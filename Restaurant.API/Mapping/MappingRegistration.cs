@@ -2,6 +2,9 @@ using System.Security.Claims;
 using Humanizer;
 using Mapster;
 using Restaurant.API.Entities;
+using Restaurant.API.Mail.Constants;
+using Restaurant.API.Mail.Models;
+using Restaurant.API.Mail.Templates.Models;
 using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
@@ -66,5 +69,12 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Id, s => s.Id)
             .Map(d => d.User, s => s.User)
             .Map(d => d.EmployeeRole, s => s.Role.Name);
+
+        config
+            .NewConfig<Tuple<User, string>, EmailSendMetadata<EmailVerificationModel>>()
+            .Map(d => d.RecipientEmail, s => s.Item1.Email)
+            .Map(d => d.Subject, _ => EmailSubjects.VERIFICATION_SUBJECT)
+            .Map(d => d.TemplateFileName, _ => EmailTemplates.VERIFICATION)
+            .Map(d => d.TemplateModel, s => new EmailVerificationModel { UserId = s.Item1.Id, UserName = s.Item1.Name, OtpCode = s.Item2 });
     }
 }

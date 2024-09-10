@@ -3,7 +3,9 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Caching;
 using Restaurant.API.Data;
+using Restaurant.API.Mail;
 using Restaurant.API.Mapping;
+using Restaurant.API.Messaging;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security;
 using Restaurant.API.Security.Configurations;
@@ -24,18 +26,32 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-builder.Services
-    .AddRepositories()
+// Core
+builder.Services.AddRepositories()
     .AddInternalServices()
     .AddValidators()
-    .AddMappings()
-    .AddSecurityConfigurations()
+    .AddMappings();
+
+// Security
+builder.Services.AddSecurityConfigurations()
     .AddSecurityServices()
-    .AddSecurityAuthentication(jwtOptions)
-    .AddDatabaseContext(pgConnString)
-    .AddRedisCaching(redisConnString)
+    .AddSecurityAuthentication(jwtOptions);
+
+// Database
+builder.Services.AddDatabaseContext(pgConnString);
+
+// Redis Cache
+builder.Services.AddRedisCaching(redisConnString)
     .AddRedisIndexes()
     .AddRedisModels();
+
+// Mail
+builder.Services.AddMailConfiguration()
+    .AddMailServices()
+    .AddMail();
+
+// Messaging
+builder.Services.AddMessaging();
 
 var app = builder.Build();
 

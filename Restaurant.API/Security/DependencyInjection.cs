@@ -20,6 +20,7 @@ public static class DependencyInjection
     public static IServiceCollection AddSecurityServices(this IServiceCollection services) =>
         services
             .AddSingleton<IPasswordHasherService, PasswordHasherService>()
+            .AddSingleton<IOtpGeneratorService, OtpGeneratorService>()
             .AddScoped<IJwtService, JwtService>();
 
     public static IServiceCollection AddSecurityAuthentication(this IServiceCollection services, JwtOptions? jwtOptions)

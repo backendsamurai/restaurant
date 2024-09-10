@@ -1,4 +1,5 @@
 using Redis.OM;
+using Redis.OM.Contracts;
 using Restaurant.API.Caching.Models;
 
 namespace Restaurant.API.Caching;
@@ -11,13 +12,13 @@ public static class DependencyInjection
             throw new ArgumentNullException(nameof(connectionString), "connectionString is null");
 
         return services
-            .AddSingleton((_) => new RedisConnectionProvider(connectionString));
+            .AddSingleton<IRedisConnectionProvider>((_) => new RedisConnectionProvider(connectionString));
     }
 
     public static IServiceCollection AddRedisIndexes(this IServiceCollection services)
     {
         var serviceProvider = services.BuildServiceProvider();
-        var provider = serviceProvider.GetRequiredService<RedisConnectionProvider>()
+        var provider = serviceProvider.GetRequiredService<IRedisConnectionProvider>()
             ?? throw new InvalidOperationException("cannot register indexes for redis cache");
 
         try
@@ -35,7 +36,7 @@ public static class DependencyInjection
     public static IServiceCollection AddRedisModels(this IServiceCollection services)
     {
         var serviceProvider = services.BuildServiceProvider();
-        var provider = serviceProvider.GetRequiredService<RedisConnectionProvider>()
+        var provider = serviceProvider.GetRequiredService<IRedisConnectionProvider>()
                    ?? throw new InvalidOperationException("cannot register models for redis cache");
 
         return services
