@@ -20,6 +20,7 @@ public static class DependencyInjection
             .AddScoped<IValidator<CreateEmployeeRoleModel>, CreateEmployeeRoleModelValidator>()
             .AddScoped<IValidator<UpdateEmployeeRoleModel>, UpdateEmployeeRoleModelValidator>()
             .AddScoped<IValidator<CreateEmployeeModel>, CreateEmployeeModelValidator>()
-            .AddScoped<IValidator<UpdateEmployeeModel>, UpdateEmployeeModelValidator>();
+            .AddScoped<IValidator<UpdateEmployeeModel>, UpdateEmployeeModelValidator>()
+            .AddScoped<IValidator<EmailVerificationModel>, EmailVerificationModelValidator>();
     }
 }

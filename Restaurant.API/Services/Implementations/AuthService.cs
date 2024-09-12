@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Ardalis.Result;
 using Ardalis.Result.FluentValidation;
 using FluentValidation;
@@ -22,7 +21,6 @@ public sealed class AuthService(
     IEmployeeRepository employeeRepository,
     IJwtService jwtService,
     IPasswordHasherService passwordHasherService,
-    IEmailVerificationService emailVerificationService,
     IValidator<LoginUserModel> loginUserValidator
 ) : IAuthService
 {
@@ -30,7 +28,6 @@ public sealed class AuthService(
     private readonly IEmployeeRepository _employeeRepository = employeeRepository;
     private readonly IJwtService _jwtService = jwtService;
     private readonly IPasswordHasherService _passwordHasherService = passwordHasherService;
-    private readonly IEmailVerificationService _emailVerificationService = emailVerificationService;
     private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
 
     public async Task<Result<LoginUserResponse>> LoginUserAsync(string audience, UserRole userRole, LoginUserModel loginUserModel)
@@ -57,7 +54,8 @@ public sealed class AuthService(
         List<SystemClaims.Claim> claims = [
             new (ClaimTypes.Name,info.User.Name),
             new (ClaimTypes.Email, info.User.Email),
-            new (ClaimTypes.UserRole, info.User.Role.ToString().Humanize(LetterCasing.LowerCase))
+            new (ClaimTypes.UserRole, info.User.Role.ToString().Humanize(LetterCasing.LowerCase)),
+            new (ClaimTypes.IsVerified, info.User.IsVerified.ToString().Humanize(LetterCasing.LowerCase))
         ];
 
         if (userRole == UserRole.Employee && !string.IsNullOrEmpty(info.EmployeeRole))
@@ -67,13 +65,6 @@ public sealed class AuthService(
 
         if (tokenResult.IsError())
             return Result.Error(tokenResult.Errors.First());
-
-        if (!info.User.IsVerified)
-        {
-            var emailResult = await _emailVerificationService.SendVerificationEmailAsync(info.User);
-
-            Console.WriteLine(JsonSerializer.Serialize(emailResult));
-        }
 
         return Result.Success(
             Tuple.Create(info.User, info.Id, tokenResult.Value, info.EmployeeRole)

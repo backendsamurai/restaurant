@@ -21,7 +21,8 @@ public sealed class CustomerService(
     IValidator<CreateCustomerModel> createCustomerValidator,
     IValidator<UpdateCustomerModel> updateCustomerValidator,
     IPasswordHasherService passwordHasher,
-    IRedisCollection<CustomerCacheModel> cache
+    IRedisCollection<CustomerCacheModel> cache,
+    IEmailVerificationService emailVerificationService
 ) : ICustomerService
 {
     private readonly ICustomerRepository _customerRepository = customerRepository;
@@ -30,6 +31,7 @@ public sealed class CustomerService(
     private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
     private readonly IPasswordHasherService _passwordHasher = passwordHasher;
     private readonly IRedisCollection<CustomerCacheModel> _cache = cache;
+    private readonly IEmailVerificationService _emailVerificationService = emailVerificationService;
 
     public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerModel createCustomerModel)
     {
@@ -61,6 +63,7 @@ public sealed class CustomerService(
             {
                 var customerResponse = customer.Adapt<CustomerResponse>();
                 await _cache.InsertAsync(customerResponse);
+                await _emailVerificationService.SendVerificationEmailAsync(customer.User);
                 return Result.Success(customerResponse);
             }
 
