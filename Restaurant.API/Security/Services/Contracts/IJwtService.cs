@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Ardalis.Result;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Security.Services.Contracts;
 

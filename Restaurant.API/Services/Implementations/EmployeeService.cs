@@ -1,5 +1,3 @@
-using Ardalis.Result;
-using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,7 @@ using Restaurant.API.Models.Employee;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -48,7 +47,13 @@ public sealed class EmployeeService(
                     .ProjectToType<EmployeeResponse>()
                     .FirstOrDefaultAsync());
 
-        return employee is null ? Result.NotFound("employee not found") : Result.Success(employee);
+        return employee is null
+            ? Result.NotFound(
+                code: "EMP-440-001",
+                type: "entity_not_found",
+                message: "Employee not found",
+                detail: "Please provide correct id"
+            ) : Result.Success(employee);
     }
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByRoleAsync(string role) =>
@@ -60,7 +65,12 @@ public sealed class EmployeeService(
         var validationResult = await _createEmployeeModelValidator.ValidateAsync(createEmployeeModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(validationResult.AsErrors());
+            return Result.Invalid(
+                code: "EMP-440-002",
+                type: "invalid_model",
+                message: "One of field are not valid",
+                detail: "Check all fields and try again"
+            );
 
         var userFromDb = await _userRepository
             .SelectByEmail(createEmployeeModel.Email!)
@@ -68,7 +78,12 @@ public sealed class EmployeeService(
             .FirstOrDefaultAsync();
 
         if (userFromDb is not null)
-            return Result.Conflict("employee with this email already exists");
+            return Result.Conflict(
+                code: "EMP-440-003",
+                type: "entity_already_exists",
+                message: "Employee with this email already exists",
+                detail: "Please check provided email or provide another email address"
+            );
 
         var employeeRole = await _employeeRoleRepository
             .SelectByName(createEmployeeModel.Role!)
@@ -76,24 +91,34 @@ public sealed class EmployeeService(
             .FirstOrDefaultAsync();
 
         if (employeeRole is null)
-            return Result.Error("cannot find role by name, please create role");
+            return Result.NotFound(
+                code: "EMP-440-001",
+                type: "entity_not_found",
+                message: "Employee Role not found",
+                detail: "Please provide correct role name"
+            );
 
         var passwordHash = _passwordHasher.Hash(createEmployeeModel.Password!);
 
         var newUser = await _userRepository.AddAsync(Tuple.Create(createEmployeeModel, passwordHash).Adapt<User>());
 
-        if (newUser is null)
-            return Result.Error("cannot create employee");
-
-        var newEmployee = await _employeeRepository.AddAsync(newUser, employeeRole);
-
-        if (newEmployee is not null)
+        if (newUser is not null)
         {
-            await _cache.InsertAsync(newEmployee);
-            return Result.Success(newEmployee.Adapt<EmployeeResponse>());
+            var newEmployee = await _employeeRepository.AddAsync(newUser, employeeRole);
+
+            if (newEmployee is not null)
+            {
+                await _cache.InsertAsync(newEmployee);
+                return Result.Created(newEmployee.Adapt<EmployeeResponse>());
+            }
         }
 
-        return Result.Error("cannot create employee");
+        return Result.Error(
+            code: "CSR-554-001",
+            type: "error_while_creation_employee",
+            message: "Cannot create employee",
+            detail: "Unexpected error"
+        );
     }
 
     public async Task<Result<EmployeeResponse>> UpdateEmployeeAsync(Guid id, UpdateEmployeeModel updateEmployeeModel)
@@ -106,7 +131,12 @@ public sealed class EmployeeService(
             .FirstOrDefaultAsync();
 
         if (employee is null)
-            return Result.NotFound("employee not found");
+            return Result.NotFound(
+                code: "EMP-440-001",
+                type: "entity_not_found",
+                message: "Employee not found",
+                detail: "Please provide correct id"
+            );
 
         if (updateEmployeeModel.Name is not null && updateEmployeeModel.Name != employee.User.Name)
         {
@@ -114,7 +144,12 @@ public sealed class EmployeeService(
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("name"));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(validationResult.AsErrors());
+                return Result.Invalid(
+                   code: "EMP-440-002",
+                   type: "invalid_model",
+                   message: "One of field are not valid",
+                   detail: "Check all fields and try again"
+               );
 
             employee.User.Name = updateEmployeeModel.Name;
             isModified = true;
@@ -126,7 +161,12 @@ public sealed class EmployeeService(
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("email"));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(validationResult.AsErrors());
+                return Result.Invalid(
+                   code: "EMP-440-002",
+                   type: "invalid_model",
+                   message: "One of field are not valid",
+                   detail: "Check all fields and try again"
+               );
 
             employee.User.Email = updateEmployeeModel.Email;
             isModified = true;
@@ -138,7 +178,12 @@ public sealed class EmployeeService(
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("password"));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(validationResult.AsErrors());
+                return Result.Invalid(
+                   code: "EMP-440-002",
+                   type: "invalid_model",
+                   message: "One of field are not valid",
+                   detail: "Check all fields and try again"
+               );
 
             employee.User.PasswordHash = _passwordHasher.Hash(updateEmployeeModel.Password);
             isModified = true;
@@ -150,7 +195,12 @@ public sealed class EmployeeService(
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("role"));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(validationResult.AsErrors());
+                return Result.Invalid(
+                   code: "EMP-440-002",
+                   type: "invalid_model",
+                   message: "One of field are not valid",
+                   detail: "Check all fields and try again"
+               );
 
             var employeeRole = await _employeeRoleRepository
                 .SelectByName(updateEmployeeModel.Role)
@@ -158,7 +208,12 @@ public sealed class EmployeeService(
                 .FirstOrDefaultAsync();
 
             if (employeeRole is null)
-                return Result.Error("the employee role cannot be updated because it does not exist");
+                return Result.NotFound(
+                    code: "EMP-440-001",
+                    type: "entity_not_found",
+                    message: "Employee Role not found",
+                    detail: "Please provide correct role name"
+                );
 
             employee.Role = employeeRole;
             isModified = true;
@@ -174,10 +229,15 @@ public sealed class EmployeeService(
                 return Result.Success(employee.Adapt<EmployeeResponse>());
             }
 
-            return Result.Error("cannot update employee");
+            return Result.Error(
+                code: "CSR-554-002",
+                type: "error_while_updating_employee",
+                message: "Cannot update employee",
+                detail: "Unexpected error"
+            );
         }
 
-        return Result.Error("don`t need update employee");
+        return Result.NoContent();
     }
 
     public async Task<Result> RemoveEmployeeAsync(Guid id)
@@ -188,16 +248,26 @@ public sealed class EmployeeService(
             .FirstOrDefaultAsync();
 
         if (employee is null)
-            return Result.NotFound("employee not found");
+            return Result.NotFound(
+                code: "EMP-440-001",
+                type: "entity_not_found",
+                message: "Employee not found",
+                detail: "Please provide correct id"
+            );
 
         var isRemoved = await _employeeRepository.RemoveAsync(employee);
 
         if (isRemoved)
         {
             await _cache.DeleteAsync(employee);
-            return Result.Success();
+            return Result.NoContent();
         }
 
-        return Result.Error("cannot remove employee");
+        return Result.Error(
+            code: "CSR-554-003",
+            type: "error_while_removing_employee",
+            message: "Cannot remove employee",
+            detail: "Unexpected error"
+        );
     }
 }

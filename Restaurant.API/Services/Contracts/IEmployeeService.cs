@@ -1,5 +1,5 @@
-using Ardalis.Result;
 using Restaurant.API.Models.Employee;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Contracts;
 

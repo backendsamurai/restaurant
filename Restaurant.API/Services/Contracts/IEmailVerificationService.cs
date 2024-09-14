@@ -1,7 +1,7 @@
-using Ardalis.Result;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Models;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Contracts;
 

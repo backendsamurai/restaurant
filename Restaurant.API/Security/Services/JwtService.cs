@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Ardalis.Result;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Services.Contracts;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Security.Services;
 
@@ -35,7 +35,12 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IJwtService
         }
         catch
         {
-            return Result.Error("cannot generate jwt token");
+            return Result.Error(
+                code: "0010",
+                type: "token_generation_error",
+                message: "Cannot generate authentication token",
+                detail: "Please check provided credentials and try again later"
+            );
         }
     }
 }

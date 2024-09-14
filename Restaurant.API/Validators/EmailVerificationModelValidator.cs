@@ -13,8 +13,8 @@ public sealed class EmailVerificationModelValidator : AbstractValidator<EmailVer
                 .WithMessage("otp code cannot be empty")
             .Matches(@"^-?[0-9][0-9,\.]+$")
                 .WithMessage("invalid otp code format")
-            .Length(EmailVerificationService.OTP_CODE_LENGTH)
-                .WithMessage($"otp code must contain {EmailVerificationService.OTP_CODE_LENGTH} digits")
+            .Length(EmailVerificationService.OtpCodeLength)
+                .WithMessage($"otp code must contain {EmailVerificationService.OtpCodeLength} digits")
             .WithName("otp_code");
     }
 }

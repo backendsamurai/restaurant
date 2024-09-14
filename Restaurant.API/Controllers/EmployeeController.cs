@@ -1,9 +1,8 @@
-using Ardalis.Result;
-using Ardalis.Result.AspNetCore;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
@@ -11,6 +10,7 @@ using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services.Contracts;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Controllers;
 
@@ -28,7 +28,7 @@ public sealed class EmployeeController(
     private readonly IEmployeeRepository _employeeRepository = employeeRepository;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    [TranslateResultToActionResult]
+    [ApplyResult]
     [HttpGet]
     public async Task<Result<List<EmployeeResponse>>> GetEmployees(
         [FromQuery(Name = "email")] string? email, [FromQuery(Name = "role")] string? role)
@@ -36,8 +36,9 @@ public sealed class EmployeeController(
         if (!string.IsNullOrEmpty(email))
         {
             var validationResult = QueryValidationHelper.Validate(email);
-            if (validationResult.IsInvalid())
-                return Result.Invalid(validationResult.ValidationErrors);
+
+            if (validationResult.IsError)
+                return Result.Invalid(validationResult.DetailedError!);
 
             return await _employeeService.GetEmployeeByEmailAsync(email);
         }
@@ -45,8 +46,9 @@ public sealed class EmployeeController(
         if (!string.IsNullOrEmpty(role))
         {
             var validationResult = QueryValidationHelper.Validate(role);
-            if (validationResult.IsInvalid())
-                return Result.Invalid(validationResult.ValidationErrors);
+
+            if (validationResult.IsError)
+                return Result.Invalid(validationResult.DetailedError!);
 
             return await _employeeService.GetEmployeeByRoleAsync(role);
         }
@@ -63,42 +65,37 @@ public sealed class EmployeeController(
         return await _employeeService.GetAllEmployeesAsync();
     }
 
-    [TranslateResultToActionResult]
-    [ExpectedFailures(ResultStatus.NotFound)]
+    [ApplyResult]
     [HttpGet("{id:guid}")]
     public async Task<Result<EmployeeResponse>> GetEmployeeById([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.GetEmployeeByIdAsync(id);
 
-    [TranslateResultToActionResult]
-    [ExpectedFailures(ResultStatus.Conflict, ResultStatus.Error, ResultStatus.Invalid)]
+    [ApplyResult]
     [HttpPost]
     public async Task<Result<EmployeeResponse>> CreateEmployee([FromBody] CreateEmployeeModel createEmployeeModel) =>
         await _employeeService.CreateEmployeeAsync(createEmployeeModel);
 
-    [TranslateResultToActionResult]
-    [ExpectedFailures(ResultStatus.Error, ResultStatus.Invalid, ResultStatus.NotFound)]
+    [ApplyResult]
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeResponse>> UpdateEmployee(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateEmployeeModel updateEmployeeModel
     ) => await _employeeService.UpdateEmployeeAsync(id, updateEmployeeModel);
 
-    [TranslateResultToActionResult]
-    [ExpectedFailures(ResultStatus.Error, ResultStatus.NotFound)]
+    [ApplyResult]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveEmployee([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.RemoveEmployeeAsync(id);
 
-    [TranslateResultToActionResult]
-    [ExpectedFailures(ResultStatus.Invalid, ResultStatus.NotFound, ResultStatus.Error)]
+    [ApplyResult]
     [HttpPost("authentication")]
     public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel)
     {
         var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
 
-        if (audienceDetectResult.IsError())
-            return Result.Error(audienceDetectResult.Errors.First());
+        if (audienceDetectResult.IsError)
+            return Result.Error(audienceDetectResult.DetailedError!);
 
-        return await _authService.LoginUserAsync(audienceDetectResult.Value, UserRole.Employee, loginUserModel);
+        return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Employee, loginUserModel);
     }
 }

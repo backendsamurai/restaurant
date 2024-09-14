@@ -1,5 +1,3 @@
-using Ardalis.Result;
-using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Humanizer;
 using Mapster;
@@ -10,6 +8,7 @@ using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
+using Restaurant.API.Types;
 using SystemClaims = System.Security.Claims;
 
 namespace Restaurant.API.Services.Implementations;
@@ -35,7 +34,12 @@ public sealed class AuthService(
         var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(validationResult.AsErrors());
+            return Result.Invalid(
+               code: "ATZ-440-001",
+               type: "invalid_model",
+               message: "One of field are not valid",
+               detail: "Check all fields and try again"
+           );
 
         var info = userRole switch
         {
@@ -46,10 +50,19 @@ public sealed class AuthService(
 
         if (info is null)
             return Result.NotFound(
-                userRole == UserRole.Customer ? "customer not found" : "employee not found");
+                code: "ATZ-440-002",
+                type: "entity_not_found",
+                message: userRole == UserRole.Customer ? "Customer not found" : "Employee not found",
+                detail: "Please provide correct id"
+            );
 
         if (!_passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
-            return Result.Error("wrong password");
+            return Result.Error(
+                code: "ATZ-554-001",
+                type: "auth_wrong_password",
+                message: "Wrong password",
+                detail: "Please check your password is correct"
+            );
 
         List<SystemClaims.Claim> claims = [
             new (ClaimTypes.Name,info.User.Name),
@@ -63,8 +76,8 @@ public sealed class AuthService(
 
         var tokenResult = _jwtService.GenerateToken(audience, claims);
 
-        if (tokenResult.IsError())
-            return Result.Error(tokenResult.Errors.First());
+        if (tokenResult.IsError)
+            return Result.Error(tokenResult.DetailedError!);
 
         return Result.Success(
             Tuple.Create(info.User, info.Id, tokenResult.Value, info.EmployeeRole)

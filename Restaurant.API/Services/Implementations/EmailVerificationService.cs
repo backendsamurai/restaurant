@@ -1,4 +1,3 @@
-using Ardalis.Result;
 using FluentValidation;
 using Mapster;
 using MassTransit;
@@ -13,7 +12,7 @@ using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Models.User;
-using Ardalis.Result.FluentValidation;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -25,7 +24,7 @@ public class EmailVerificationService(
     IValidator<EmailVerificationModel> emailVerificationValidator
 ) : IEmailVerificationService
 {
-    public const int OTP_CODE_LENGTH = 6;
+    public const int OtpCodeLength = 6;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IOtpGeneratorService _otpGeneratorService = otpGeneratorService;
     private readonly IRedisConnectionProvider _redisConnectionProvider = redisConnectionProvider;
@@ -40,7 +39,7 @@ public class EmailVerificationService(
         var user = await _userRepository.SelectByEmail(authenticatedUser.Email).FirstOrDefaultAsync();
 
         if (user is null)
-            return Result.NotFound("user not found");
+            return Result.NotFound(code: "", type: "", message: "", detail: "user not found");
 
         return await SendVerificationEmailAsync(user);
     }
@@ -50,13 +49,13 @@ public class EmailVerificationService(
         if (user.IsVerified)
             return Result.Success();
 
-        var otpCode = _otpGeneratorService.Generate(OTP_CODE_LENGTH);
+        var otpCode = _otpGeneratorService.Generate(OtpCodeLength);
 
         var isCached = await _redisConnectionProvider.Connection
             .JsonSetAsync($"otp-{user.Id}", "$", otpCode.ToString(), WhenKey.NotExists, TimeSpan.FromMinutes(2));
 
         if (!isCached)
-            return Result.Error("error while sending verification email");
+            return Result.Error(code: "", type: "", message: "", detail: "cannot send verification mail");
 
         await _bus.Publish(Tuple.Create(user, otpCode).Adapt<EmailSendMetadata<EmailTemplatesModels.EmailVerificationModel>>());
 
@@ -71,24 +70,24 @@ public class EmailVerificationService(
         var validationResult = await _emailVerificationValidator.ValidateAsync(emailVerificationModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(validationResult.AsErrors());
+            return Result.Invalid(code: "", type: "", message: "", detail: "invalid model");
 
         var user = await _userRepository.SelectByEmail(authenticatedUser.Email).FirstOrDefaultAsync();
 
         if (user is null)
-            return Result.NotFound("user not found");
+            return Result.NotFound(code: "", type: "", message: "", detail: "user not found");
 
         var otpCodeFromCache = await _redisConnectionProvider.Connection.JsonGetAsync<int?>($"otp-{user.Id}");
 
         if (otpCodeFromCache is null || emailVerificationModel.OtpCode != otpCodeFromCache.ToString())
-            return Result.Error("invalid verification code");
+            return Result.Error(code: "", type: "", message: "", detail: "invalid verification code");
 
         user.IsVerified = true;
 
         if (await _userRepository.UpdateAsync(user))
             return Result.Success();
 
-        return Result.Error("cannot verify this user");
+        return Result.Error(code: "", type: "", message: "", detail: "cannot verify this user");
     }
 
 }

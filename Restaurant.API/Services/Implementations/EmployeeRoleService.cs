@@ -1,5 +1,3 @@
-using Ardalis.Result;
-using Ardalis.Result.FluentValidation;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +9,7 @@ using Restaurant.API.Extensions;
 using Restaurant.API.Models.EmployeeRole;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -34,7 +33,13 @@ public sealed class EmployeeRoleService(
         var role = await _cache.GetOrSetAsync(er => er.Id == id,
             async () => await _employeeRoleRepository.SelectById(id).ProjectToType<EmployeeRole>().FirstOrDefaultAsync());
 
-        return role is null ? Result.NotFound("employee role not found") : Result.Success(role);
+        return role is null
+            ? Result.NotFound(
+                code: "EMR-440-001",
+                type: "entity_not_found",
+                message: "Employee Role not found",
+                detail: "Please provide correct id"
+            ) : Result.Success(role);
     }
 
     public async Task<Result<List<EmployeeRole>>> GetEmployeeRoleByNameAsync(string name)
@@ -50,7 +55,12 @@ public sealed class EmployeeRoleService(
         var validationResult = await _createEmployeeRoleModelValidator.ValidateAsync(createEmployeeRoleModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(validationResult.AsErrors());
+            return Result.Invalid(
+                code: "EMR-440-002",
+                type: "invalid_model",
+                message: "One of field are not valid",
+                detail: "Check all fields and try again"
+            );
 
         var roleFromDb = await _employeeRoleRepository
             .SelectByName(createEmployeeRoleModel.Name!)
@@ -58,17 +68,27 @@ public sealed class EmployeeRoleService(
             .FirstOrDefaultAsync();
 
         if (roleFromDb is not null)
-            return Result.Conflict("employee role with this name already exists");
+            return Result.Conflict(
+                code: "EMR-440-003",
+                type: "entity_already_exists",
+                message: "Employee Role already exists",
+                detail: "employee role with this name already exists"
+            );
 
         var createdRole = await _employeeRoleRepository.AddAsync(createEmployeeRoleModel.Name!);
 
         if (createdRole is not null)
         {
             await _cache.InsertAsync(createdRole);
-            return Result.Success(createdRole);
+            return Result.Created(createdRole);
         }
 
-        return Result.Error("cannot create employee role");
+        return Result.Error(
+            code: "EMR-554-001",
+            type: "error_while_create_entity",
+            message: "Cannot Create Employee Role",
+            detail: "Check all provided data and try again later"
+        );
     }
 
     public async Task<Result<EmployeeRole>> UpdateEmployeeRoleAsync(Guid id, UpdateEmployeeRoleModel updateEmployeeRoleModel)
@@ -76,7 +96,12 @@ public sealed class EmployeeRoleService(
         var validationResult = await _updateEmployeeRoleModelValidator.ValidateAsync(updateEmployeeRoleModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(validationResult.AsErrors());
+            return Result.Invalid(
+                code: "EMR-440-002",
+                type: "invalid_model",
+                message: "One of field are not valid",
+                detail: "Check all fields and try again"
+            );
 
         var role = await _employeeRoleRepository
             .SelectById(id)
@@ -84,10 +109,15 @@ public sealed class EmployeeRoleService(
             .FirstOrDefaultAsync();
 
         if (role is null)
-            return Result.NotFound("employee role not found");
+            return Result.NotFound(
+                code: "EMR-440-001",
+                type: "entity_not_found",
+                message: "Employee Role not found",
+                detail: "Please provide correct id"
+            );
 
         if (role.Name == updateEmployeeRoleModel.Name!)
-            return Result.Conflict("the employee role name is the same as in the database");
+            return Result.NoContent();
 
         role.Name = updateEmployeeRoleModel.Name!;
 
@@ -99,7 +129,12 @@ public sealed class EmployeeRoleService(
             return Result.Success(role);
         }
 
-        return Result.Error("cannot update employee role");
+        return Result.Error(
+            code: "EMR-554-002",
+            type: "error_while_updating_entity",
+            message: "Cannot Updated Employee Role",
+            detail: "Check all provided data and try again later"
+        );
     }
 
     public async Task<Result> RemoveEmployeeRoleAsync(Guid id)
@@ -110,16 +145,26 @@ public sealed class EmployeeRoleService(
             .FirstOrDefaultAsync();
 
         if (role is null)
-            return Result.NotFound("employee role not found");
+            return Result.NotFound(
+                code: "EMR-440-001",
+                type: "entity_not_found",
+                message: "Employee Role not found",
+                detail: "Please provide correct id"
+            );
 
         var isRemoved = await _employeeRoleRepository.RemoveAsync(role);
 
         if (isRemoved)
         {
             await _cache.DeleteAsync(role);
-            return Result.Success();
+            return Result.NoContent();
         }
 
-        return Result.Error("cannot remove employee role");
+        return Result.Error(
+            code: "EMR-554-003",
+            type: "error_while_removing_entity",
+            message: "Cannot Remove Employee Role",
+            detail: "Check all provided data and try again later"
+        );
     }
 }
