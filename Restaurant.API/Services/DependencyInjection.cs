@@ -12,5 +12,6 @@ public static class DependencyInjection
             .AddScoped<IAuthService, AuthService>()
             .AddScoped<IEmployeeRoleService, EmployeeRoleService>()
             .AddScoped<IEmployeeService, EmployeeService>()
-            .AddScoped<IEmailVerificationService, EmailVerificationService>();
+            .AddScoped<IEmailVerificationService, EmailVerificationService>()
+            .AddScoped<IProductCategoryService, ProductCategoryService>();
 }

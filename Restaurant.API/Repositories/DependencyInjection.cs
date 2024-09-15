@@ -9,6 +9,7 @@ public static class DependencyInjection
             .AddScoped<ICustomerRepository, CustomerRepository>()
             .AddScoped<IDeskRepository, DeskRepository>()
             .AddScoped<IEmployeeRepository, EmployeeRepository>()
-            .AddScoped<IEmployeeRoleRepository, EmployeeRoleRepository>();
+            .AddScoped<IEmployeeRoleRepository, EmployeeRoleRepository>()
+            .AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
     }
 }

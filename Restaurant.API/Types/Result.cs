@@ -79,7 +79,13 @@ public class Result : IResult
     public static Result Conflict(DetailedError detailedError) =>
         new(ResultStatus.Conflict, detailedError);
 
-    public object? GetValue() => new { Status, Error = DetailedError };
+    public object? GetValue()
+    {
+        if (Status == ResultStatus.NoContent)
+            return null;
+
+        return new { Status, Error = DetailedError };
+    }
 }
 
 public class Result<T> : IResult where T : class
@@ -173,5 +179,16 @@ public class Result<T> : IResult where T : class
     public static Result<T> Conflict(DetailedError detailedError) =>
         new(ResultStatus.Conflict, detailedError);
 
-    public object? GetValue() => new { Status, Data = Value, Error = DetailedError };
+    public object? GetValue()
+    {
+        if (Status == ResultStatus.NoContent)
+            return null;
+
+        return new
+        {
+            Status,
+            Data = Value,
+            Error = DetailedError
+        };
+    }
 }
