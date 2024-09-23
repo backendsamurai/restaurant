@@ -6,7 +6,7 @@ using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Employee;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
@@ -49,7 +49,7 @@ public sealed class EmployeeService(
 
         return employee is null
             ? Result.NotFound(
-                code: "EMP-440-001",
+                code: "EMP-000-001",
                 type: "entity_not_found",
                 message: "Employee not found",
                 detail: "Please provide correct id"
@@ -66,7 +66,7 @@ public sealed class EmployeeService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "EMP-440-002",
+                code: "EMP-000-002",
                 type: "invalid_model",
                 message: "One of field are not valid",
                 detail: "Check all fields and try again"
@@ -79,7 +79,7 @@ public sealed class EmployeeService(
 
         if (userFromDb is not null)
             return Result.Conflict(
-                code: "EMP-440-003",
+                code: "EMP-100-001",
                 type: "entity_already_exists",
                 message: "Employee with this email already exists",
                 detail: "Please check provided email or provide another email address"
@@ -92,7 +92,7 @@ public sealed class EmployeeService(
 
         if (employeeRole is null)
             return Result.NotFound(
-                code: "EMP-440-001",
+                code: "EMP-000-003",
                 type: "entity_not_found",
                 message: "Employee Role not found",
                 detail: "Please provide correct role name"
@@ -114,7 +114,7 @@ public sealed class EmployeeService(
         }
 
         return Result.Error(
-            code: "CSR-554-001",
+            code: "EMP-100-002",
             type: "error_while_creation_employee",
             message: "Cannot create employee",
             detail: "Unexpected error"
@@ -132,7 +132,7 @@ public sealed class EmployeeService(
 
         if (employee is null)
             return Result.NotFound(
-                code: "EMP-440-001",
+                code: "EMP-000-001",
                 type: "entity_not_found",
                 message: "Employee not found",
                 detail: "Please provide correct id"
@@ -145,7 +145,7 @@ public sealed class EmployeeService(
 
             if (!validationResult.IsValid)
                 return Result.Invalid(
-                   code: "EMP-440-002",
+                   code: "EMP-000-002",
                    type: "invalid_model",
                    message: "One of field are not valid",
                    detail: "Check all fields and try again"
@@ -162,7 +162,7 @@ public sealed class EmployeeService(
 
             if (!validationResult.IsValid)
                 return Result.Invalid(
-                   code: "EMP-440-002",
+                   code: "EMP-000-002",
                    type: "invalid_model",
                    message: "One of field are not valid",
                    detail: "Check all fields and try again"
@@ -179,7 +179,7 @@ public sealed class EmployeeService(
 
             if (!validationResult.IsValid)
                 return Result.Invalid(
-                   code: "EMP-440-002",
+                   code: "EMP-000-002",
                    type: "invalid_model",
                    message: "One of field are not valid",
                    detail: "Check all fields and try again"
@@ -196,7 +196,7 @@ public sealed class EmployeeService(
 
             if (!validationResult.IsValid)
                 return Result.Invalid(
-                   code: "EMP-440-002",
+                   code: "EMP-000-002",
                    type: "invalid_model",
                    message: "One of field are not valid",
                    detail: "Check all fields and try again"
@@ -209,7 +209,7 @@ public sealed class EmployeeService(
 
             if (employeeRole is null)
                 return Result.NotFound(
-                    code: "EMP-440-001",
+                    code: "EMP-000-003",
                     type: "entity_not_found",
                     message: "Employee Role not found",
                     detail: "Please provide correct role name"
@@ -230,7 +230,7 @@ public sealed class EmployeeService(
             }
 
             return Result.Error(
-                code: "CSR-554-002",
+                code: "EMP-100-003",
                 type: "error_while_updating_employee",
                 message: "Cannot update employee",
                 detail: "Unexpected error"
@@ -264,7 +264,7 @@ public sealed class EmployeeService(
         }
 
         return Result.Error(
-            code: "CSR-554-003",
+            code: "EMP-100-004",
             type: "error_while_removing_employee",
             message: "Cannot remove employee",
             detail: "Unexpected error"

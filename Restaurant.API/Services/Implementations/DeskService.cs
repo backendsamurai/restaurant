@@ -5,7 +5,7 @@ using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Desk;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
@@ -33,7 +33,7 @@ public sealed class DeskService(
 
         return desk is null
             ? Result.NotFound(
-                code: "DSK-440-001",
+                code: "DSK-000-001",
                 type: "entity_not_found",
                 message: "Desk not found",
                 detail: "Please provide correct id"
@@ -46,7 +46,7 @@ public sealed class DeskService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "DSK-440-002",
+                code: "DSK-000-002",
                 type: "invalid_model",
                 message: "One of field are not valid",
                 detail: "Check all fields and try again"
@@ -56,7 +56,7 @@ public sealed class DeskService(
 
         if (desk is not null)
             return Result.Conflict(
-                code: "DSK-440-003",
+                code: "DSK-000-003",
                 type: "conflict_entities",
                 message: "Desk is already exists",
                 detail: "Please verify parameter 'name'"
@@ -71,7 +71,7 @@ public sealed class DeskService(
         }
 
         return Result.Error(
-            code: "DSK-554-001",
+            code: "DSK-100-001",
             type: "error_create_desk",
             message: "Cannot create desk",
             detail: "Unexpected error"
@@ -84,7 +84,7 @@ public sealed class DeskService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "DSK-440-002",
+                code: "DSK-000-002",
                 type: "invalid_model",
                 message: "One of field are not valid",
                 detail: "Check all fields and try again"
@@ -94,7 +94,7 @@ public sealed class DeskService(
 
         if (desk is null)
             return Result.NotFound(
-                code: "DSK-440-001",
+                code: "DSK-000-001",
                 type: "entity_not_found",
                 message: "Desk not found",
                 detail: "Please provide correct id"
@@ -114,7 +114,7 @@ public sealed class DeskService(
         }
 
         return Result.Error(
-            code: "DSK-554-002",
+            code: "DSK-100-002",
             type: "entity_update_error",
             message: "Error while updating desk",
             detail: "Check all provided data and try again later"
@@ -127,7 +127,7 @@ public sealed class DeskService(
 
         if (desk is null)
             return Result.NotFound(
-                code: "DSK-440-001",
+                code: "DSK-000-001",
                 type: "entity_not_found",
                 message: "Desk not found",
                 detail: "Please provide correct id"
@@ -142,7 +142,7 @@ public sealed class DeskService(
         }
 
         return Result.Error(
-            code: "DSK-554-003",
+            code: "DSK-100-003",
             type: "error_while_remove_desk",
             message: "Cannot remove desk",
             detail: "Unexpected error"

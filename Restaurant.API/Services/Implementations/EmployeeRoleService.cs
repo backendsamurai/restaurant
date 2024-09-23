@@ -7,7 +7,7 @@ using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.EmployeeRole;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
@@ -35,7 +35,7 @@ public sealed class EmployeeRoleService(
 
         return role is null
             ? Result.NotFound(
-                code: "EMR-440-001",
+                code: "EMR-000-001",
                 type: "entity_not_found",
                 message: "Employee Role not found",
                 detail: "Please provide correct id"
@@ -56,7 +56,7 @@ public sealed class EmployeeRoleService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "EMR-440-002",
+                code: "EMR-000-002",
                 type: "invalid_model",
                 message: "One of field are not valid",
                 detail: "Check all fields and try again"
@@ -69,7 +69,7 @@ public sealed class EmployeeRoleService(
 
         if (roleFromDb is not null)
             return Result.Conflict(
-                code: "EMR-440-003",
+                code: "EMR-000-003",
                 type: "entity_already_exists",
                 message: "Employee Role already exists",
                 detail: "employee role with this name already exists"
@@ -84,7 +84,7 @@ public sealed class EmployeeRoleService(
         }
 
         return Result.Error(
-            code: "EMR-554-001",
+            code: "EMR-100-001",
             type: "error_while_create_entity",
             message: "Cannot Create Employee Role",
             detail: "Check all provided data and try again later"
@@ -97,7 +97,7 @@ public sealed class EmployeeRoleService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "EMR-440-002",
+                code: "EMR-000-002",
                 type: "invalid_model",
                 message: "One of field are not valid",
                 detail: "Check all fields and try again"
@@ -110,7 +110,7 @@ public sealed class EmployeeRoleService(
 
         if (role is null)
             return Result.NotFound(
-                code: "EMR-440-001",
+                code: "EMR-000-001",
                 type: "entity_not_found",
                 message: "Employee Role not found",
                 detail: "Please provide correct id"
@@ -130,7 +130,7 @@ public sealed class EmployeeRoleService(
         }
 
         return Result.Error(
-            code: "EMR-554-002",
+            code: "EMR-100-002",
             type: "error_while_updating_entity",
             message: "Cannot Updated Employee Role",
             detail: "Check all provided data and try again later"
@@ -146,7 +146,7 @@ public sealed class EmployeeRoleService(
 
         if (role is null)
             return Result.NotFound(
-                code: "EMR-440-001",
+                code: "EMR-000-001",
                 type: "entity_not_found",
                 message: "Employee Role not found",
                 detail: "Please provide correct id"
@@ -161,7 +161,7 @@ public sealed class EmployeeRoleService(
         }
 
         return Result.Error(
-            code: "EMR-554-003",
+            code: "EMR-100-003",
             type: "error_while_removing_entity",
             message: "Cannot Remove Employee Role",
             detail: "Check all provided data and try again later"

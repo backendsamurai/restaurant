@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Data;
 using Restaurant.API.Entities;
+using Restaurant.API.Repositories.Contracts;
 
-namespace Restaurant.API.Repositories;
+namespace Restaurant.API.Repositories.Implementations;
 
 public sealed class ProductCategoryRepository(
     RestaurantDbContext context

@@ -6,7 +6,7 @@ using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Customer;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
@@ -47,7 +47,7 @@ public sealed class CustomerService(
 
             if (userFromDb is not null)
                 return Result.Conflict(
-                    code: "CSR-440-001",
+                    code: "CSR-000-001",
                     type: "entity_already_exists",
                     message: "Customer with this email already exists",
                     detail: "Please check provided email or provide another email address"
@@ -74,7 +74,7 @@ public sealed class CustomerService(
             }
 
             return Result.Error(
-                code: "CSR-554-001",
+                code: "CSR-100-001",
                 type: "error_while_creation_customer",
                 message: "Cannot create customer",
                 detail: "Unexpected error"
@@ -82,7 +82,7 @@ public sealed class CustomerService(
         }
 
         return Result.Invalid(
-            code: "CSR-440-002",
+            code: "CSR-000-002",
             type: "invalid_model",
             message: "One of field are not valid",
             detail: "Check all fields and try again"
@@ -96,7 +96,7 @@ public sealed class CustomerService(
 
         return customer is null
             ? Result.NotFound(
-                code: "CSR-440-003",
+                code: "CSR-000-003",
                 type: "entity_not_found",
                 message: "Customer not found",
                 detail: "Please provide correct id"
@@ -111,7 +111,7 @@ public sealed class CustomerService(
 
         if (customer is null)
             return Result.NotFound(
-                code: "CSR-440-003",
+                code: "CSR-000-003",
                 type: "entity_not_found",
                 message: "Customer not found",
                 detail: "Please provide correct id"
@@ -119,7 +119,7 @@ public sealed class CustomerService(
 
         if (customer.User.Email != authenticatedUser.Email)
             return Result.Unauthorized(
-                code: "CSR-554-051",
+                code: "CSR-100-051",
                 type: "missing_authorization",
                 message: "Unauthorized",
                 detail: "Please provide authentication"
@@ -132,7 +132,7 @@ public sealed class CustomerService(
 
             if (!nameValidationResult.IsValid)
                 return Result.Invalid(
-                    code: "CSR-440-002",
+                    code: "CSR-000-002",
                     type: "invalid_model",
                     message: "One of field are not valid",
                     detail: "Check all fields and try again"
@@ -149,7 +149,7 @@ public sealed class CustomerService(
 
             if (!emailValidationResult.IsValid)
                 return Result.Invalid(
-                    code: "CSR-440-002",
+                    code: "CSR-000-002",
                     type: "invalid_model",
                     message: "One of field are not valid",
                     detail: "Check all fields and try again"
@@ -166,7 +166,7 @@ public sealed class CustomerService(
 
             if (!passwordValidationResult.IsValid)
                 return Result.Invalid(
-                   code: "CSR-440-002",
+                   code: "CSR-000-002",
                     type: "invalid_model",
                     message: "One of field are not valid",
                     detail: "Check all fields and try again"
@@ -189,7 +189,7 @@ public sealed class CustomerService(
             }
 
             return Result.Error(
-                code: "CSR-554-002",
+                code: "CSR-100-002",
                 type: "error_while_updating_customer",
                 message: "Cannot update customer",
                 detail: "Unexpected error"

@@ -1,3 +1,6 @@
+using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories.Implementations;
+
 namespace Restaurant.API.Repositories;
 
 public static class DependencyInjection

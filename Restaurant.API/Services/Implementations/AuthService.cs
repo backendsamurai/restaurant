@@ -4,7 +4,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.User;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
@@ -35,7 +35,7 @@ public sealed class AuthService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-               code: "ATZ-440-001",
+               code: "ATZ-000-001",
                type: "invalid_model",
                message: "One of field are not valid",
                detail: "Check all fields and try again"
@@ -50,7 +50,7 @@ public sealed class AuthService(
 
         if (info is null)
             return Result.NotFound(
-                code: "ATZ-440-002",
+                code: "ATZ-000-002",
                 type: "entity_not_found",
                 message: userRole == UserRole.Customer ? "Customer not found" : "Employee not found",
                 detail: "Please provide correct id"
@@ -58,7 +58,7 @@ public sealed class AuthService(
 
         if (!_passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
             return Result.Error(
-                code: "ATZ-554-001",
+                code: "ATZ-100-001",
                 type: "auth_wrong_password",
                 message: "Wrong password",
                 detail: "Please check your password is correct"

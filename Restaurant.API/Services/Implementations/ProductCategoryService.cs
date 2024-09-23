@@ -2,11 +2,10 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
-using Restaurant.API.Data;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.ProductCategory;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
@@ -16,15 +15,13 @@ public sealed class ProductCategoryService(
     IProductCategoryRepository productCategoryRepository,
     IRedisCollection<ProductCategoryModel> cache,
     IValidator<CreateProductCategoryModel> createProductValidator,
-    IValidator<UpdateProductCategoryModel> updateProductValidator,
-    RestaurantDbContext context
+    IValidator<UpdateProductCategoryModel> updateProductValidator
 ) : IProductCategoryService
 {
     private readonly IProductCategoryRepository _productCategoryRepository = productCategoryRepository;
     private readonly IRedisCollection<ProductCategoryModel> _cache = cache;
     private readonly IValidator<CreateProductCategoryModel> _createProductValidator = createProductValidator;
     private readonly IValidator<UpdateProductCategoryModel> _updateProductValidator = updateProductValidator;
-    private readonly RestaurantDbContext _context = context;
 
     public async Task<Result<List<ProductCategory>>> GetProductCategories() =>
         await _cache.GetOrSetAsync(_productCategoryRepository.SelectAllAsync);
@@ -36,7 +33,7 @@ public sealed class ProductCategoryService(
 
         return category is null
             ? Result.NotFound(
-                code: "PRC-440-001",
+                code: "PRC-000-001",
                 type: "entity_not_found",
                 message: "Category not found",
                 detail: "Please provide correct category id"
@@ -59,7 +56,7 @@ public sealed class ProductCategoryService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "RPC-440-002",
+                code: "RPC-000-002",
                 type: "invalid_model",
                 message: "One of provided field are invalid",
                 detail: "Check all fields is valid and try again"
@@ -71,7 +68,7 @@ public sealed class ProductCategoryService(
 
         if (category is not null)
             return Result.Conflict(
-                code: "RPC-554-001",
+                code: "RPC-100-001",
                 type: "conflict_entities",
                 message: "Category with this name already exists",
                 detail: "Change provided name to another and try again"
@@ -87,7 +84,7 @@ public sealed class ProductCategoryService(
         }
 
         return Result.Error(
-            code: "RPC-554-002",
+            code: "RPC-100-002",
             type: "error_while_creating_entity",
             message: "Error while creating category",
             detail: "Try again later"
@@ -100,7 +97,7 @@ public sealed class ProductCategoryService(
 
         if (!validationResult.IsValid)
             return Result.Invalid(
-                code: "RPC-440-002",
+                code: "RPC-000-002",
                 type: "invalid_model",
                 message: "One of provided field are invalid",
                 detail: "Check all fields is valid and try again"
@@ -110,7 +107,7 @@ public sealed class ProductCategoryService(
 
         if (category is null)
             return Result.NotFound(
-                 code: "PRC-440-001",
+                 code: "PRC-000-001",
                  type: "entity_not_found",
                  message: "Category not found",
                  detail: "Please provide correct category id"
@@ -128,7 +125,7 @@ public sealed class ProductCategoryService(
         }
 
         return Result.Error(
-            code: "RPC-554-003",
+            code: "RPC-100-003",
             type: "error_while_updating_entity",
             message: "Error while updating category",
             detail: "Try again later"
@@ -141,7 +138,7 @@ public sealed class ProductCategoryService(
 
         if (category is null)
             return Result.NotFound(
-                 code: "PRC-440-001",
+                 code: "PRC-000-001",
                  type: "entity_not_found",
                  message: "Category not found",
                  detail: "Please provide correct category id"
@@ -154,7 +151,7 @@ public sealed class ProductCategoryService(
         }
 
         return Result.Error(
-            code: "RPC-554-004",
+            code: "RPC-100-004",
             type: "error_while_removing_entity",
             message: "Error while removing category",
             detail: "Try again later"

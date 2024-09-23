@@ -1,6 +1,6 @@
 using Restaurant.API.Entities;
 
-namespace Restaurant.API.Repositories;
+namespace Restaurant.API.Repositories.Contracts;
 
 public interface IEmployeeRoleRepository
 {
