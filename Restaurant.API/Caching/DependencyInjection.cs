@@ -28,6 +28,7 @@ public static class DependencyInjection
             provider.Connection.CreateIndex(typeof(CustomerCacheModel));
             provider.Connection.CreateIndex(typeof(DeskCacheModel));
             provider.Connection.CreateIndex(typeof(ProductCategoryModel));
+            provider.Connection.CreateIndex(typeof(ProductModel));
         }
         catch { }
 
@@ -45,6 +46,7 @@ public static class DependencyInjection
             .AddScoped((_) => provider.RedisCollection<CustomerCacheModel>())
             .AddScoped((_) => provider.RedisCollection<EmployeeCacheModel>())
             .AddScoped((_) => provider.RedisCollection<EmployeeRoleCacheModel>())
-            .AddScoped((_) => provider.RedisCollection<ProductCategoryModel>());
+            .AddScoped((_) => provider.RedisCollection<ProductCategoryModel>())
+            .AddScoped((_) => provider.RedisCollection<ProductModel>());
     }
 }

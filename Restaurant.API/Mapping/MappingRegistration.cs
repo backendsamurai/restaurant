@@ -10,6 +10,7 @@ using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
 using Restaurant.API.Services.Implementations;
 using SecurityModels = Restaurant.API.Security.Models;
+using Restaurant.API.Models.Product;
 
 namespace Restaurant.API.Mapping;
 
@@ -77,5 +78,12 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Subject, _ => EmailSubjects.VERIFICATION_SUBJECT)
             .Map(d => d.TemplateFileName, _ => EmailTemplates.VERIFICATION)
             .Map(d => d.TemplateModel, s => new MailTemplateModels.EmailVerificationModel(s.Item1.Id, s.Item1.Name, s.Item2));
+
+        config
+            .NewConfig<CreateProductModel, Product>()
+            .Map(d => d.Name, s => s.Name)
+            .Map(d => d.Description, s => s.Description)
+            .Map(d => d.ImageUrl, s => "")
+            .Map(d => d.Price, s => s.Price);
     }
 }

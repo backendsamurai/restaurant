@@ -13,5 +13,6 @@ public static class DependencyInjection
             .AddScoped<IEmployeeRoleService, EmployeeRoleService>()
             .AddScoped<IEmployeeService, EmployeeService>()
             .AddScoped<IEmailVerificationService, EmailVerificationService>()
-            .AddScoped<IProductCategoryService, ProductCategoryService>();
+            .AddScoped<IProductCategoryService, ProductCategoryService>()
+            .AddScoped<IProductService, ProductService>();
 }

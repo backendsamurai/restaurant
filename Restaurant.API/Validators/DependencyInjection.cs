@@ -3,6 +3,7 @@ using Restaurant.API.Models.Customer;
 using Restaurant.API.Models.Desk;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.EmployeeRole;
+using Restaurant.API.Models.Product;
 using Restaurant.API.Models.ProductCategory;
 using Restaurant.API.Models.User;
 
@@ -24,6 +25,8 @@ public static class DependencyInjection
             .AddScoped<IValidator<UpdateEmployeeModel>, UpdateEmployeeModelValidator>()
             .AddScoped<IValidator<EmailVerificationModel>, EmailVerificationModelValidator>()
             .AddScoped<IValidator<CreateProductCategoryModel>, CreateProductCategoryModelValidator>()
-            .AddScoped<IValidator<UpdateProductCategoryModel>, UpdateProductCategoryModelValidator>();
+            .AddScoped<IValidator<UpdateProductCategoryModel>, UpdateProductCategoryModelValidator>()
+            .AddScoped<IValidator<CreateProductModel>, CreateProductModelValidator>()
+            .AddScoped<IValidator<UpdateProductModel>, UpdateProductModelValidator>();
     }
 }

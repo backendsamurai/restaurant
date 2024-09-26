@@ -7,7 +7,7 @@ using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
-using Restaurant.API.Repositories;
+using Restaurant.API.Repositories.Contracts;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
