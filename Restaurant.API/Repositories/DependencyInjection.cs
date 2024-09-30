@@ -14,6 +14,7 @@ public static class DependencyInjection
             .AddScoped<IEmployeeRepository, EmployeeRepository>()
             .AddScoped<IEmployeeRoleRepository, EmployeeRoleRepository>()
             .AddScoped<IProductCategoryRepository, ProductCategoryRepository>()
-            .AddScoped<IProductRepository, ProductRepository>();
+            .AddScoped<IProductRepository, ProductRepository>()
+            .AddScoped(typeof(IRepository<>), typeof(Repository<>));
     }
 }

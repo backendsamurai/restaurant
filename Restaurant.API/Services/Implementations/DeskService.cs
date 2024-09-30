@@ -5,31 +5,30 @@ using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Desk;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
 public sealed class DeskService(
-    IDeskRepository repository,
+    IRepository<Desk> repository,
     IValidator<CreateDeskModel> createDeskValidator,
     IValidator<UpdateDeskModel> updateDeskValidator,
     IRedisCollection<DeskCacheModel> cache
 ) : IDeskService
 {
-    private readonly IDeskRepository _deskRepository = repository;
+    private readonly IRepository<Desk> _repository = repository;
     private readonly IValidator<CreateDeskModel> _createDeskValidator = createDeskValidator;
     private readonly IValidator<UpdateDeskModel> _updateDeskValidator = updateDeskValidator;
     private readonly IRedisCollection<DeskCacheModel> _cache = cache;
 
     public async Task<Result<List<Desk>>> GetAllDesksAsync() =>
-        await _cache.GetOrSetAsync(async () => await _deskRepository.SelectAllDesks().ToListAsync());
+        await _cache.GetOrSetAsync(_repository.SelectAllAsync);
 
     public async Task<Result<Desk>> GetDeskByIdAsync(Guid id)
     {
-        var desk = await _cache.GetOrSetAsync(d => d.Id == id, async () =>
-            await _deskRepository.SelectDeskById(id).FirstOrDefaultAsync());
+        var desk = await _cache.GetOrSetAsync(d => d.Id == id, async () => await _repository.SelectByIdAsync(id));
 
         return desk is null
             ? Result.NotFound(
@@ -52,7 +51,7 @@ public sealed class DeskService(
                 detail: "Check all fields and try again"
             );
 
-        var desk = await _deskRepository.SelectDeskByName(createDeskModel.Name!).FirstOrDefaultAsync();
+        var desk = await _repository.Where(d => d.Name == createDeskModel.Name!).FirstOrDefaultAsync();
 
         if (desk is not null)
             return Result.Conflict(
@@ -62,7 +61,7 @@ public sealed class DeskService(
                 detail: "Please verify parameter 'name'"
             );
 
-        var newDesk = await _deskRepository.CreateDeskAsync(createDeskModel.Name!);
+        var newDesk = await _repository.AddAsync(new Desk { Name = createDeskModel.Name! });
 
         if (newDesk is not null)
         {
@@ -90,7 +89,7 @@ public sealed class DeskService(
                 detail: "Check all fields and try again"
             );
 
-        var desk = await _deskRepository.SelectDeskById(id).FirstOrDefaultAsync();
+        var desk = await _repository.SelectByIdAsync(id);
 
         if (desk is null)
             return Result.NotFound(
@@ -105,7 +104,7 @@ public sealed class DeskService(
 
         desk.Name = updateDeskModel.Name!;
 
-        var isUpdated = await _deskRepository.UpdateDeskAsync(desk);
+        var isUpdated = await _repository.UpdateAsync(desk);
 
         if (isUpdated)
         {
@@ -123,7 +122,7 @@ public sealed class DeskService(
 
     public async Task<Result> RemoveDeskAsync(Guid id)
     {
-        var desk = await _deskRepository.SelectDeskById(id).FirstOrDefaultAsync();
+        var desk = await _repository.SelectByIdAsync(id);
 
         if (desk is null)
             return Result.NotFound(
@@ -133,7 +132,7 @@ public sealed class DeskService(
                 detail: "Please provide correct id"
             );
 
-        var isRemoved = await _deskRepository.RemoveDeskAsync(desk);
+        var isRemoved = await _repository.RemoveAsync(desk);
 
         if (isRemoved)
         {
