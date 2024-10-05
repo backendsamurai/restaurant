@@ -1,17 +1,25 @@
 using System.Linq.Expressions;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Data;
+using Restaurant.API.Types;
 
 namespace Restaurant.API.Repositories;
 
-public class Repository<T>(RestaurantDbContext context) : IRepository<T> where T : class
+public class Repository<T>(RestaurantDbContext context, ITransactional transactional) : IRepository<T> where T : class
 {
     private readonly RestaurantDbContext _context = context;
+    private readonly ITransactional _transactional = transactional;
 
     public List<T> SelectAll() => [.. _context.Set<T>()];
 
+    public List<TResult> SelectAll<TResult>() => [.. _context.Set<T>().ProjectToType<TResult>()];
+
     public async Task<List<T>> SelectAllAsync() =>
         await _context.Set<T>().ToListAsync();
+
+    public async Task<List<TResult>> SelectAllAsync<TResult>() =>
+        await _context.Set<T>().ProjectToType<TResult>().ToListAsync();
 
     public T? SelectById(Guid id) => _context.Set<T>().Find(id);
 
@@ -24,118 +32,74 @@ public class Repository<T>(RestaurantDbContext context) : IRepository<T> where T
     public IQueryable<T> Where(Expression<Func<T, bool>> expression) =>
        _context.Set<T>().Where(expression);
 
-    public T? Add(T value)
-    {
-        using var transaction = _context.Database.BeginTransaction();
+    public TResult? WhereFirst<TResult>(Expression<Func<T, bool>> expression) =>
+        _context.Set<T>().Where(expression).ProjectToType<TResult>().FirstOrDefault();
 
-        try
+    public async Task<TResult?> WhereFirstAsync<TResult>(Expression<Func<T, bool>> expression) =>
+        await _context.Set<T>().Where(expression).ProjectToType<TResult>().FirstOrDefaultAsync();
+
+    public List<TResult> Where<TResult>(Expression<Func<T, bool>> expression) =>
+        [.. _context.Set<T>().Where(expression).ProjectToType<TResult>()];
+
+    public async Task<List<TResult>> WhereAsync<TResult>(Expression<Func<T, bool>> expression) =>
+        await _context.Set<T>().Where(expression).ProjectToType<TResult>().ToListAsync();
+
+    public T? FirstOrDefault(Expression<Func<T, bool>> expression) => Where(expression).FirstOrDefault();
+
+    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> expression) => await Where(expression).FirstOrDefaultAsync();
+
+    public T? Add(T value) =>
+        _transactional.UseTransaction((context) =>
         {
-            _context.Entry(value).State = EntityState.Added;
-            _context.SaveChanges();
-            transaction.Commit();
+            context.Entry(value).State = EntityState.Added;
+            context.SaveChanges();
 
             return value;
-        }
-        catch (Exception)
+        });
+
+    public async Task<T?> AddAsync(T value) =>
+        await _transactional.UseTransactionAsync(async (context) =>
         {
-            transaction.Rollback();
-            return null;
-        }
-    }
-
-    public async Task<T?> AddAsync(T value)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
-        {
-            _context.Entry(value).State = EntityState.Added;
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
+            context.Entry(value).State = EntityState.Added;
+            await context.SaveChangesAsync();
             return value;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            return null;
-        }
-    }
+        });
 
-    public bool Update(T value)
-    {
-        using var transaction = _context.Database.BeginTransaction();
 
-        try
+    public bool Update(T value) =>
+        _transactional.UseTransaction((context) =>
         {
-            _context.Entry(value).State = EntityState.Modified;
-            _context.SaveChanges();
-            transaction.Commit();
+            context.Entry(value).State = EntityState.Modified;
+            context.SaveChanges();
 
             return true;
-        }
-        catch (Exception)
-        {
-            transaction.Rollback();
-            return false;
-        }
-    }
+        }, valueWhenError: false);
 
-    public async Task<bool> UpdateAsync(T value)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
 
-        try
+    public async Task<bool> UpdateAsync(T value) =>
+        await _transactional.UseTransactionAsync(async (context) =>
         {
-            _context.Entry(value).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            context.Entry(value).State = EntityState.Modified;
+            await context.SaveChangesAsync();
 
             return true;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            return false;
-        }
-    }
+        }, valueWhenError: false);
 
-    public bool Remove(T value)
-    {
-        using var transaction = _context.Database.BeginTransaction();
-
-        try
+    public bool Remove(T value) =>
+        _transactional.UseTransaction((context) =>
         {
-            _context.Entry(value).State = EntityState.Deleted;
-            _context.SaveChanges();
-            transaction.Commit();
+            context.Entry(value).State = EntityState.Deleted;
+            context.SaveChanges();
 
             return true;
-        }
-        catch (Exception)
-        {
-            transaction.Rollback();
-            return false;
-        }
-    }
+        }, valueWhenError: false);
 
-    public async Task<bool> RemoveAsync(T value)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
+    public async Task<bool> RemoveAsync(T value) =>
+        await _transactional.UseTransactionAsync(async (context) =>
         {
-            _context.Entry(value).State = EntityState.Deleted;
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            context.Entry(value).State = EntityState.Deleted;
+            await context.SaveChangesAsync();
 
             return true;
-        }
-        catch (Exception)
-        {
-            await transaction.RollbackAsync();
-            return false;
-        }
-    }
+        }, valueWhenError: false);
 }

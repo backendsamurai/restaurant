@@ -1,12 +1,11 @@
 using FluentValidation;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Customer;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
@@ -15,8 +14,8 @@ using Restaurant.API.Types;
 namespace Restaurant.API.Services.Implementations;
 
 public sealed class CustomerService(
-    ICustomerRepository customerRepository,
-    IUserRepository userRepository,
+    IRepository<Customer> customerRepository,
+    IRepository<User> userRepository,
     IValidator<CreateCustomerModel> createCustomerValidator,
     IValidator<UpdateCustomerModel> updateCustomerValidator,
     IPasswordHasherService passwordHasher,
@@ -24,8 +23,8 @@ public sealed class CustomerService(
     IEmailVerificationService emailVerificationService
 ) : ICustomerService
 {
-    private readonly ICustomerRepository _customerRepository = customerRepository;
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRepository<Customer> _customerRepository = customerRepository;
+    private readonly IRepository<User> _userRepository = userRepository;
     private readonly IValidator<CreateCustomerModel> _createCustomerValidator = createCustomerValidator;
     private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
     private readonly IPasswordHasherService _passwordHasher = passwordHasher;
@@ -40,10 +39,7 @@ public sealed class CustomerService(
         {
             var passwordHash = _passwordHasher.Hash(createCustomerModel.Password!);
 
-            var userFromDb = await _userRepository
-                .SelectByEmail(createCustomerModel.Email!)
-                .ProjectToType<User>()
-                .FirstOrDefaultAsync();
+            var userFromDb = await _userRepository.FirstOrDefaultAsync(u => u.Email == createCustomerModel.Email!);
 
             if (userFromDb is not null)
                 return Result.Conflict(
@@ -61,7 +57,8 @@ public sealed class CustomerService(
             };
 
             await _userRepository.AddAsync(user);
-            var customer = await _customerRepository.AddAsync(user);
+
+            var customer = await _customerRepository.AddAsync(new Customer { User = user });
 
             if (customer is not null)
             {
@@ -92,7 +89,7 @@ public sealed class CustomerService(
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {
         var customer = await _cache.GetOrSetAsync(c => c.CustomerId == id,
-            async () => await _customerRepository.SelectById(id).ProjectToType<CustomerResponse>().FirstOrDefaultAsync());
+            async () => await _customerRepository.WhereFirstAsync<CustomerResponse>(c => c.Id == id));
 
         return customer is null
             ? Result.NotFound(
@@ -107,7 +104,8 @@ public sealed class CustomerService(
         Guid id, AuthenticatedUser authenticatedUser, UpdateCustomerModel updateCustomerModel)
     {
         bool isModified = false;
-        var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
+
+        var customer = await _customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
             return Result.NotFound(
@@ -178,7 +176,7 @@ public sealed class CustomerService(
 
         if (isModified)
         {
-            var isUpdated = await _customerRepository.UpdateAsync(customer.User);
+            var isUpdated = await _customerRepository.UpdateAsync(customer);
 
             if (isUpdated)
             {
@@ -201,7 +199,7 @@ public sealed class CustomerService(
 
     public async Task<Result> RemoveCustomerAsync(Guid id, AuthenticatedUser authenticatedUser)
     {
-        var customer = await _customerRepository.SelectById(id).ProjectToType<Customer>().FirstOrDefaultAsync();
+        var customer = await _customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
             return Result.NotFound(

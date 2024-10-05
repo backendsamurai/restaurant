@@ -1,7 +1,6 @@
 using FluentValidation;
 using Mapster;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Redis.OM;
 using Redis.OM.Contracts;
 using Restaurant.API.Entities;
@@ -12,20 +11,20 @@ using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Models.User;
 using Restaurant.API.Types;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 
 namespace Restaurant.API.Services.Implementations;
 
 public class EmailVerificationService(
     IBus bus,
-    IUserRepository userRepository,
+    IRepository<User> userRepository,
     IOtpGeneratorService otpGeneratorService,
     IRedisConnectionProvider redisConnectionProvider,
     IValidator<EmailVerificationModel> emailVerificationValidator
 ) : IEmailVerificationService
 {
     public const int OtpCodeLength = 6;
-    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRepository<User> _userRepository = userRepository;
     private readonly IOtpGeneratorService _otpGeneratorService = otpGeneratorService;
     private readonly IRedisConnectionProvider _redisConnectionProvider = redisConnectionProvider;
     private readonly IValidator<EmailVerificationModel> _emailVerificationValidator = emailVerificationValidator;
@@ -36,7 +35,7 @@ public class EmailVerificationService(
         if (authenticatedUser.IsVerified)
             return Result.Success();
 
-        var user = await _userRepository.SelectByEmail(authenticatedUser.Email).FirstOrDefaultAsync();
+        var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
 
         if (user is null)
             return Result.NotFound(
@@ -87,7 +86,7 @@ public class EmailVerificationService(
                 detail: "One of field is invalid. Check provided data and try again later"
             );
 
-        var user = await _userRepository.SelectByEmail(authenticatedUser.Email).FirstOrDefaultAsync();
+        var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
 
         if (user is null)
             return Result.NotFound(

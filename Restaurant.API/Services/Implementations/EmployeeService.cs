@@ -1,12 +1,11 @@
 using FluentValidation;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Employee;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
@@ -14,38 +13,34 @@ using Restaurant.API.Types;
 namespace Restaurant.API.Services.Implementations;
 
 public sealed class EmployeeService(
-    IUserRepository userRepository,
-    IEmployeeRepository employeeRepository,
-    IEmployeeRoleRepository employeeRoleRepository,
+    IRepository<User> userRepository,
+    IRepository<Employee> employeeRepository,
+    IRepository<EmployeeRole> employeeRoleRepository,
     IPasswordHasherService passwordHasher,
     IValidator<CreateEmployeeModel> createEmployeeModelValidator,
     IValidator<UpdateEmployeeModel> updateEmployeeModelValidator,
     IRedisCollection<EmployeeCacheModel> cache
 ) : IEmployeeService
 {
-    private readonly IUserRepository _userRepository = userRepository;
-    private readonly IEmployeeRepository _employeeRepository = employeeRepository;
-    private readonly IEmployeeRoleRepository _employeeRoleRepository = employeeRoleRepository;
+    private readonly IRepository<User> _userRepository = userRepository;
+    private readonly IRepository<Employee> _employeeRepository = employeeRepository;
+    private readonly IRepository<EmployeeRole> _employeeRoleRepository = employeeRoleRepository;
     private readonly IPasswordHasherService _passwordHasher = passwordHasher;
     private readonly IValidator<CreateEmployeeModel> _createEmployeeModelValidator = createEmployeeModelValidator;
     private readonly IValidator<UpdateEmployeeModel> _updateEmployeeModelValidator = updateEmployeeModelValidator;
     private readonly IRedisCollection<EmployeeCacheModel> _cache = cache;
 
     public async Task<Result<List<EmployeeResponse>>> GetAllEmployeesAsync() =>
-        await _cache.GetOrSetAsync(
-            async () => await _employeeRepository.SelectAll().ProjectToType<EmployeeResponse>().ToListAsync());
+        await _cache.GetOrSetAsync(_employeeRepository.SelectAllAsync<EmployeeResponse>);
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByEmailAsync(string email) =>
          await _cache.GetOrSetAsync(e => e.UserEmail.StartsWith(email),
-            async () => await _employeeRepository.SelectByEmail(email).ProjectToType<EmployeeResponse>().ToListAsync());
+            async () => await _employeeRepository.WhereAsync<EmployeeResponse>(e => e.User.Email.Contains(email)));
 
     public async Task<Result<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
     {
         var employee = await _cache.GetOrSetAsync(e => e.EmployeeId == id,
-                async () => await _employeeRepository
-                    .SelectById(id)
-                    .ProjectToType<EmployeeResponse>()
-                    .FirstOrDefaultAsync());
+                async () => await _employeeRepository.WhereFirstAsync<EmployeeResponse>(e => e.Id == id));
 
         return employee is null
             ? Result.NotFound(
@@ -58,7 +53,7 @@ public sealed class EmployeeService(
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByRoleAsync(string role) =>
         await _cache.GetOrSetAsync(e => e.EmployeeRole.StartsWith(role),
-            async () => await _employeeRepository.SelectByRole(role).ProjectToType<EmployeeResponse>().ToListAsync());
+            async () => await _employeeRepository.WhereAsync<EmployeeResponse>(e => e.Role.Name.StartsWith(role)));
 
     public async Task<Result<EmployeeResponse>> CreateEmployeeAsync(CreateEmployeeModel createEmployeeModel)
     {
@@ -72,10 +67,7 @@ public sealed class EmployeeService(
                 detail: "Check all fields and try again"
             );
 
-        var userFromDb = await _userRepository
-            .SelectByEmail(createEmployeeModel.Email!)
-            .ProjectToType<User>()
-            .FirstOrDefaultAsync();
+        var userFromDb = await _userRepository.FirstOrDefaultAsync(u => u.Email == createEmployeeModel.Email!);
 
         if (userFromDb is not null)
             return Result.Conflict(
@@ -85,10 +77,7 @@ public sealed class EmployeeService(
                 detail: "Please check provided email or provide another email address"
             );
 
-        var employeeRole = await _employeeRoleRepository
-            .SelectByName(createEmployeeModel.Role!)
-            .ProjectToType<EmployeeRole>()
-            .FirstOrDefaultAsync();
+        var employeeRole = await _employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == createEmployeeModel.Role!);
 
         if (employeeRole is null)
             return Result.NotFound(
@@ -104,7 +93,7 @@ public sealed class EmployeeService(
 
         if (newUser is not null)
         {
-            var newEmployee = await _employeeRepository.AddAsync(newUser, employeeRole);
+            var newEmployee = await _employeeRepository.AddAsync(new Employee { Role = employeeRole, User = newUser });
 
             if (newEmployee is not null)
             {
@@ -125,10 +114,7 @@ public sealed class EmployeeService(
     {
         bool isModified = false;
 
-        var employee = await _employeeRepository
-            .SelectById(id)
-            .ProjectToType<Employee>()
-            .FirstOrDefaultAsync();
+        var employee = await _employeeRepository.SelectByIdAsync(id);
 
         if (employee is null)
             return Result.NotFound(
@@ -202,10 +188,7 @@ public sealed class EmployeeService(
                    detail: "Check all fields and try again"
                );
 
-            var employeeRole = await _employeeRoleRepository
-                .SelectByName(updateEmployeeModel.Role)
-                .ProjectToType<EmployeeRole>()
-                .FirstOrDefaultAsync();
+            var employeeRole = await _employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == updateEmployeeModel.Role!);
 
             if (employeeRole is null)
                 return Result.NotFound(
@@ -242,10 +225,7 @@ public sealed class EmployeeService(
 
     public async Task<Result> RemoveEmployeeAsync(Guid id)
     {
-        var employee = await _employeeRepository
-            .SelectById(id)
-            .ProjectToType<Employee>()
-            .FirstOrDefaultAsync();
+        var employee = await _employeeRepository.SelectByIdAsync(id);
 
         if (employee is null)
             return Result.NotFound(

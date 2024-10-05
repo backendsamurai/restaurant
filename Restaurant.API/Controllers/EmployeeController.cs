@@ -7,7 +7,7 @@ using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
 using Restaurant.API.Models.User;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
@@ -19,13 +19,13 @@ namespace Restaurant.API.Controllers;
 public sealed class EmployeeController(
     IEmployeeService employeeService,
     IAuthService authService,
-    IEmployeeRepository employeeRepository,
+    IRepository<Employee> employeeRepository,
     IOptions<JwtOptions> jwtOptions
 ) : ControllerBase
 {
     private readonly IEmployeeService _employeeService = employeeService;
     private readonly IAuthService _authService = authService;
-    private readonly IEmployeeRepository _employeeRepository = employeeRepository;
+    private readonly IRepository<Employee> _employeeRepository = employeeRepository;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     [ApplyResult]
@@ -56,10 +56,7 @@ public sealed class EmployeeController(
         if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(role))
         {
             return await _employeeRepository
-                .SelectAll()
-                .Where(e => e.User.Email.Contains(email) && e.Role.Name.Contains(role))
-                .ProjectToType<EmployeeResponse>()
-                .ToListAsync();
+                .WhereAsync<EmployeeResponse>(e => e.User.Email.Contains(email) && e.Role.Name.Contains(role));
         }
 
         return await _employeeService.GetAllEmployeesAsync();

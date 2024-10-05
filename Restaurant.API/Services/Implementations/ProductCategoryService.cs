@@ -1,24 +1,23 @@
 using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.ProductCategory;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
 public sealed class ProductCategoryService(
-    IProductCategoryRepository productCategoryRepository,
+    IRepository<ProductCategory> productCategoryRepository,
     IRedisCollection<ProductCategoryModel> cache,
     IValidator<CreateProductCategoryModel> createProductValidator,
     IValidator<UpdateProductCategoryModel> updateProductValidator
 ) : IProductCategoryService
 {
-    private readonly IProductCategoryRepository _productCategoryRepository = productCategoryRepository;
+    private readonly IRepository<ProductCategory> _productCategoryRepository = productCategoryRepository;
     private readonly IRedisCollection<ProductCategoryModel> _cache = cache;
     private readonly IValidator<CreateProductCategoryModel> _createProductValidator = createProductValidator;
     private readonly IValidator<UpdateProductCategoryModel> _updateProductValidator = updateProductValidator;
@@ -44,7 +43,7 @@ public sealed class ProductCategoryService(
     {
         var categories = await _cache.GetOrSetAsync(
             pc => pc.Name.Contains(name),
-            async () => await _productCategoryRepository.SelectByName(name).ToListAsync()
+            async () => await _productCategoryRepository.WhereAsync<ProductCategory>(pc => pc.Name.Contains(name))
         );
 
         return Result.Success(categories);
@@ -62,9 +61,7 @@ public sealed class ProductCategoryService(
                 detail: "Check all fields is valid and try again"
             );
 
-        var category = await _productCategoryRepository
-            .SelectByName(createProductCategoryModel.Name)
-            .FirstOrDefaultAsync();
+        var category = await _productCategoryRepository.FirstOrDefaultAsync(pc => pc.Name == createProductCategoryModel.Name!);
 
         if (category is not null)
             return Result.Conflict(
