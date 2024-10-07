@@ -1,38 +1,37 @@
 using FluentValidation;
 using Mapster;
-using Microsoft.EntityFrameworkCore;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Product;
-using Restaurant.API.Repositories.Contracts;
+using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
 
 namespace Restaurant.API.Services.Implementations;
 
 public sealed class ProductService(
-    IProductRepository productRepository,
-    IProductCategoryRepository productCategoryRepository,
+    IRepository<Product> productRepository,
+    IRepository<ProductCategory> productCategoryRepository,
     IValidator<CreateProductModel> createProductModelValidator,
     IValidator<UpdateProductModel> updateProductModelValidator,
     IRedisCollection<ProductModel> cache
 ) : IProductService
 {
-    private readonly IProductRepository _productRepository = productRepository;
-    private readonly IProductCategoryRepository _productCategoryRepository = productCategoryRepository;
+    private readonly IRepository<Product> _productRepository = productRepository;
+    private readonly IRepository<ProductCategory> _productCategoryRepository = productCategoryRepository;
     private readonly IValidator<CreateProductModel> _createProductModelValidator = createProductModelValidator;
     private readonly IValidator<UpdateProductModel> _updateProductModelValidator = updateProductModelValidator;
     private readonly IRedisCollection<ProductModel> _cache = cache;
 
     public async Task<Result<List<Product>>> GetAllProductsAsync() =>
-        await _cache.GetOrSetAsync(_productRepository.SelectAllProductsAsync);
+        await _cache.GetOrSetAsync(_productRepository.SelectAllAsync);
 
     public async Task<Result<Product>> GetProductByIdAsync(Guid id)
     {
         var product = await _cache.GetOrSetAsync(
-            p => p.Id == id, async () => await _productRepository.SelectProductByIdAsync(id));
+            p => p.Id == id, async () => await _productRepository.SelectByIdAsync(id));
 
         if (product is null)
             return Result.NotFound(
@@ -47,7 +46,7 @@ public sealed class ProductService(
 
     public async Task<Result<List<Product>>> GetProductsByNameAsync(string name) =>
         await _cache.GetOrSetAsync(p => p.Name.Contains(name),
-            async () => await _productRepository.SelectProductsByName(name).ToListAsync());
+            async () => await _productRepository.WhereAsync<Product>(p => p.Name.Contains(name)));
 
     public async Task<Result<Product>> CreateProductAsync(CreateProductModel createProductModel)
     {
@@ -61,7 +60,7 @@ public sealed class ProductService(
                 detail: "Please provide correct data and try again"
             );
 
-        var productFromDb = await _productRepository.SelectProductsByName(createProductModel.Name).FirstOrDefaultAsync();
+        var productFromDb = await _productRepository.FirstOrDefaultAsync(p => p.Name == createProductModel.Name);
 
         if (productFromDb is not null)
             return Result.Conflict(
@@ -102,7 +101,7 @@ public sealed class ProductService(
     {
         bool isModified = false;
 
-        var product = await _productRepository.SelectProductByIdAsync(id);
+        var product = await _productRepository.SelectByIdAsync(id);
 
         if (product is null)
             return Result.NotFound(
@@ -200,7 +199,7 @@ public sealed class ProductService(
 
     public async Task<Result> RemoveProductAsync(Guid id)
     {
-        var product = await _productRepository.SelectProductByIdAsync(id);
+        var product = await _productRepository.SelectByIdAsync(id);
 
         if (product is null)
             return Result.NotFound(

@@ -9,6 +9,7 @@ using Restaurant.API.Repositories;
 using Restaurant.API.Security;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services;
+using Restaurant.API.Types;
 using Restaurant.API.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +50,9 @@ builder.Services.AddMailConfiguration()
 
 // Messaging
 builder.Services.AddMessaging();
+
+// Custom Types
+builder.Services.AddCustomTypes();
 
 var app = builder.Build();
 
