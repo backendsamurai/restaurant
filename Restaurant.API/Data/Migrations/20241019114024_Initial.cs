@@ -152,7 +152,7 @@ namespace Restaurant.API.Data.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    customer_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    customer_id = table.Column<Guid>(type: "uuid", nullable: false),
                     waiter_id = table.Column<Guid>(type: "uuid", nullable: false),
                     desk_id = table.Column<Guid>(type: "uuid", nullable: false),
                     status = table.Column<string>(type: "varchar", nullable: false),
@@ -167,7 +167,8 @@ namespace Restaurant.API.Data.Migrations
                         name: "fk_orders_customers_customer_id",
                         column: x => x.customer_id,
                         principalTable: "customers",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "fk_orders_desks_desk_id",
                         column: x => x.desk_id,
@@ -217,8 +218,8 @@ namespace Restaurant.API.Data.Migrations
                 columns: new[] { "id", "name" },
                 values: new object[,]
                 {
-                    { new Guid("98d6964a-e88d-44af-86e4-0c58240bd371"), "manager" },
-                    { new Guid("abe471a9-b706-4794-abd7-0c2d518d2abe"), "waiter" }
+                    { new Guid("74341376-1fd5-495b-9944-5f31e991ab91"), "manager" },
+                    { new Guid("e810e4d5-1887-4ac7-85a1-fa62e216e4e1"), "waiter" }
                 });
 
             migrationBuilder.InsertData(
@@ -226,27 +227,27 @@ namespace Restaurant.API.Data.Migrations
                 columns: new[] { "id", "name" },
                 values: new object[,]
                 {
-                    { new Guid("08847cf3-2d2b-4c19-8aac-93f1cbcb04a5"), "Sushi" },
-                    { new Guid("1f958f7e-f235-49ef-9f9e-9d2387eecb02"), "Barbecue" },
-                    { new Guid("25b37daa-5f3f-4f96-a863-092c3e8b202f"), "Fast Food" },
-                    { new Guid("2cdf4bf5-1b80-4ebe-a016-b07825c438f2"), "Hot Dogs" },
-                    { new Guid("4ac43dc6-f2b3-4310-92ed-867fce5c76a4"), "Seafood" },
-                    { new Guid("6784cb9b-7208-48b8-9c37-afef9d20388b"), "Desserts" },
-                    { new Guid("7e990a71-fbab-4378-95bd-3b0dffa13a47"), "Pizzas" },
-                    { new Guid("9130a129-41fa-4465-b229-20bc4eedba4d"), "Steaks" },
-                    { new Guid("9c050383-d937-403d-8ae5-a50fb28eacd2"), "Coffee" },
-                    { new Guid("a8c40386-b940-4602-aeb7-f9542737ffbd"), "Drinks" }
+                    { new Guid("04b8c2cd-a9bb-4698-a30e-8ba3d9c170f1"), "Steaks" },
+                    { new Guid("1e6b5e24-ee39-441a-bebc-564f8514b616"), "Seafood" },
+                    { new Guid("214691df-e1c5-4524-b865-389626eac3af"), "Desserts" },
+                    { new Guid("2426ca78-6c8e-42f9-8573-9ab5dac81583"), "Drinks" },
+                    { new Guid("486be5f5-c861-430f-8f60-03f9af73b170"), "Sushi" },
+                    { new Guid("63102f40-3ae1-4814-848f-64a5b3f21120"), "Pizzas" },
+                    { new Guid("99b529fc-18cc-46dc-b2c2-5a69e88834a3"), "Fast Food" },
+                    { new Guid("c51130c9-057d-4046-a8d8-6257a6efdb7e"), "Barbecue" },
+                    { new Guid("c728710f-7d21-43f8-af7e-edae192fcc5b"), "Hot Dogs" },
+                    { new Guid("f2e2837e-c945-43d6-a124-9aea8466c288"), "Coffee" }
                 });
 
             migrationBuilder.InsertData(
                 table: "users",
                 columns: new[] { "id", "email", "name", "password_hash", "role" },
-                values: new object[] { new Guid("fd92af47-10be-4689-b28f-796cad40a350"), "victor_samoylov@gmail.com", "Victor Samoylov", "A253E48651FC84595B0EB5A498205E9C43E791AB3C21B5A5AEA02E56C3309FB8-862C21CDB4435E527F321B9FC0507B43", "employee" });
+                values: new object[] { new Guid("cd0e5dd9-5078-471b-ab7e-493d26669ce4"), "victor_samoylov@gmail.com", "Victor Samoylov", "EAABBF23E856BEB7C7CB30704B5DAE880D0E9BDA4C6A23C4D1F1888393AD991C-E67C6986FC4D8B2386090650D4EA513F", "employee" });
 
             migrationBuilder.InsertData(
                 table: "employees",
                 columns: new[] { "id", "role_id", "user_id" },
-                values: new object[] { new Guid("10092dfa-fe46-4b04-bba5-5da74eec3807"), new Guid("98d6964a-e88d-44af-86e4-0c58240bd371"), new Guid("fd92af47-10be-4689-b28f-796cad40a350") });
+                values: new object[] { new Guid("b0fda4dc-97ec-43f8-b43c-b7c7b3eaf137"), new Guid("74341376-1fd5-495b-9944-5f31e991ab91"), new Guid("cd0e5dd9-5078-471b-ab7e-493d26669ce4") });
 
             migrationBuilder.CreateIndex(
                 name: "ix_customers_user_id",
