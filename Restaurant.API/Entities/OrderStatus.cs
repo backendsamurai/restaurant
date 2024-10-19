@@ -2,5 +2,5 @@ namespace Restaurant.API.Entities;
 
 public enum OrderStatus
 {
-    Created, AwaitPayment, Pending, Completed, Cancelled
+    AwaitPayment, Pending, Closed
 }
