@@ -12,5 +12,8 @@ public sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .Property(e => e.Id)
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
+
+        builder.Navigation(e => e.User).AutoInclude();
+        builder.Navigation(e => e.Role).AutoInclude();
     }
 }

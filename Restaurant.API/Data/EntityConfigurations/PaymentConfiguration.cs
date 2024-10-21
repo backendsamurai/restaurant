@@ -15,11 +15,6 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasDefaultValueSql("gen_random_uuid()");
 
         builder
-            .Property(p => p.Status)
-            .HasColumnType("varchar")
-            .HasConversion<PaymentStatusValueConverter>();
-
-        builder
             .Property(p => p.Bill)
             .HasColumnType("numeric(18,2)");
 

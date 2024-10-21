@@ -1,11 +1,10 @@
-using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
+using Restaurant.API.Models.Order;
 using Restaurant.API.Models.User;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Configurations;
@@ -19,12 +18,14 @@ namespace Restaurant.API.Controllers;
 public sealed class EmployeeController(
     IEmployeeService employeeService,
     IAuthService authService,
+    IOrderService orderService,
     IRepository<Employee> employeeRepository,
     IOptions<JwtOptions> jwtOptions
 ) : ControllerBase
 {
     private readonly IEmployeeService _employeeService = employeeService;
     private readonly IAuthService _authService = authService;
+    private readonly IOrderService _orderService = orderService;
     private readonly IRepository<Employee> _employeeRepository = employeeRepository;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
@@ -83,6 +84,11 @@ public sealed class EmployeeController(
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveEmployee([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.RemoveEmployeeAsync(id);
+
+    [ApplyResult]
+    [HttpGet("{employeeId:guid}/orders")]
+    public async Task<Result<List<OrderResponse>>> GetOrdersByEmployee([FromRoute(Name = "employeeId")] Guid employeeId) =>
+        await _orderService.GetOrdersByEmployeeAsync(employeeId);
 
     [ApplyResult]
     [HttpPost("authentication")]

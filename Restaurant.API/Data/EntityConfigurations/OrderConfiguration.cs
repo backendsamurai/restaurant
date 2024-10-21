@@ -14,6 +14,12 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
 
+        builder.Navigation(o => o.Customer).AutoInclude();
+        builder.Navigation(o => o.Waiter).AutoInclude();
+        builder.Navigation(o => o.Desk).AutoInclude();
+        builder.Navigation(o => o.Payment).AutoInclude();
+        builder.Navigation(o => o.Items).EnableLazyLoading().AutoInclude();
+
         builder
             .Property(o => o.Status)
             .HasColumnType("varchar")

@@ -39,5 +39,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder
             .HasIndex(p => p.Name)
             .IsUnique();
+
+        builder.Navigation(p => p.Category).AutoInclude();
     }
 }

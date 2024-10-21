@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Caching;
 using Restaurant.API.Data;
@@ -20,6 +21,9 @@ var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.Sectio
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
+    var enumConverter = new JsonStringEnumConverter();
+
+    options.JsonSerializerOptions.Converters.Add(enumConverter);
     options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 });

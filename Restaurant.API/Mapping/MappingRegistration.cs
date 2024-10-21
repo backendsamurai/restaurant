@@ -11,6 +11,8 @@ using Restaurant.API.Models.User;
 using Restaurant.API.Services.Implementations;
 using SecurityModels = Restaurant.API.Security.Models;
 using Restaurant.API.Models.Product;
+using Restaurant.API.Caching.Models;
+using Restaurant.API.Models.Order;
 
 namespace Restaurant.API.Mapping;
 
@@ -54,6 +56,15 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.EmployeeRole, s => s.Role.Name);
 
         config
+            .NewConfig<Employee, EmployeeCacheModel>()
+            .Map(d => d.EmployeeId, s => s.Id)
+            .Map(d => d.UserId, s => s.User.Id)
+            .Map(d => d.UserName, s => s.User.Name)
+            .Map(d => d.UserEmail, s => s.User.Email)
+            .Map(d => d.IsVerified, s => s.User.IsVerified)
+            .Map(d => d.EmployeeRole, s => s.Role.Name);
+
+        config
             .NewConfig<Tuple<CreateEmployeeModel, string>, User>()
             .Map(d => d.Name, s => s.Item1.Name)
             .Map(d => d.Email, s => s.Item1.Email)
@@ -85,5 +96,17 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Description, s => s.Description)
             .Map(d => d.ImageUrl, s => "")
             .Map(d => d.Price, s => s.Price);
+
+        config
+            .NewConfig<Order, OrderResponse>()
+            .Map(d => d.Customer, s => s.Customer.Adapt<CustomerResponse>())
+            .Map(d => d.Waiter, s => s.Waiter.Adapt<EmployeeResponse>())
+            .Map(d => d.Desk, s => s.Desk)
+            .Map(d => d.OrderLineItems, s => s.Items)
+            .Map(d => d.OrderId, s => s.Id)
+            .Map(d => d.OrderStatus, s => s.Status)
+            .Map(d => d.Payment, s => s.Payment)
+            .Map(d => d.CreatedAt, s => s.CreatedAt)
+            .Map(d => d.UpdatedAt, s => s.UpdatedAt);
     }
 }

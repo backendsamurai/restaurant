@@ -12,5 +12,7 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .Property(c => c.Id)
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
+
+        builder.Navigation(c => c.User).AutoInclude();
     }
 }

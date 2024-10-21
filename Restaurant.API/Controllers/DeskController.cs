@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Restaurant.API.Attributes;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Desk;
+using Restaurant.API.Models.Order;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
@@ -11,9 +12,10 @@ namespace Restaurant.API.Controllers;
 
 [ApiController]
 [Route("desks")]
-public sealed class DeskController(IDeskService deskService) : ControllerBase
+public sealed class DeskController(IDeskService deskService, IOrderService orderService) : ControllerBase
 {
     private readonly IDeskService _deskService = deskService;
+    private readonly IOrderService _orderService = orderService;
 
     [ApplyResult]
     [HttpGet]
@@ -44,4 +46,9 @@ public sealed class DeskController(IDeskService deskService) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveDesk([FromRoute(Name = "id")] Guid id) =>
         await _deskService.RemoveDeskAsync(id);
+
+    [ApplyResult]
+    [HttpGet("{deskId:guid}/orders")]
+    public async Task<Result<List<OrderResponse>>> GetOrders([FromRoute(Name = "deskId")] Guid deskId) =>
+        await _orderService.GetOrderByDeskAsync(deskId);
 }

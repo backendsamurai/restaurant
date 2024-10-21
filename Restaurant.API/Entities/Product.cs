@@ -1,3 +1,5 @@
+using Restaurant.API.Entities.Abstractions;
+
 namespace Restaurant.API.Entities;
 
 public sealed class Product : Entity

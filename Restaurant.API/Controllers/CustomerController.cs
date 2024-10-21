@@ -6,6 +6,7 @@ using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Customer;
+using Restaurant.API.Models.Order;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Models;
@@ -19,11 +20,13 @@ namespace Restaurant.API.Controllers;
 public sealed class CustomerController(
       ICustomerService customerService,
       IAuthService authService,
+      IOrderService orderService,
       IOptions<JwtOptions> jwtOptions
 ) : ControllerBase
 {
       private readonly ICustomerService _customerService = customerService;
       private readonly IAuthService _authService = authService;
+      private readonly IOrderService _orderService = orderService;
       private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
       [ApplyResult]
@@ -49,6 +52,12 @@ public sealed class CustomerController(
       [HttpDelete("{id:guid}")]
       public async Task<Result> RemoveCustomer([FromRoute(Name = "id")] Guid id) =>
             await _customerService.RemoveCustomerAsync(id, User.Adapt<AuthenticatedUser>());
+
+      [ApplyResult]
+      [Authorize(AuthorizationPolicies.RequireCustomer)]
+      [HttpGet("{customerId:guid}/orders")]
+      public async Task<Result<List<OrderResponse>>> GetOrders([FromRoute(Name = "customerId")] Guid customerId) =>
+            await _orderService.GetOrdersByCustomerAsync(customerId);
 
       [ApplyResult]
       [HttpPost("authentication")]
