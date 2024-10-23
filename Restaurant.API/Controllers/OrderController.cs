@@ -17,8 +17,36 @@ public sealed class OrderController(IOrderService orderService) : ControllerBase
 
     [ApplyResult]
     [HttpGet]
-    public async Task<Result<List<OrderResponse>>> GetOrders(OrderStatus status) =>
-        await _orderService.GetOrdersAsync(status);
+    public async Task<Result<List<OrderResponse>>> GetOrders(
+        [FromQuery(Name = "status")] OrderStatus? status,
+        [FromQuery(Name = "customerId")] Guid? customerId,
+        [FromQuery(Name = "employeeId")] Guid? employeeId,
+        [FromQuery(Name = "deskId")] Guid? deskId)
+    {
+        if (status is not null)
+            return await _orderService.GetOrdersAsync(status.GetValueOrDefault());
+
+        if (customerId is not null)
+            return await _orderService.GetOrdersByCustomerAsync(customerId.GetValueOrDefault());
+
+        if (employeeId is not null)
+            return await _orderService.GetOrdersByEmployeeAsync(employeeId.GetValueOrDefault());
+
+        if (deskId is not null)
+            return await _orderService.GetOrderByDeskAsync(deskId.GetValueOrDefault());
+
+        return Result.Error(
+            code: "ODC-000-001",
+            type: "invalid query",
+            message: "Incorrect query parameters",
+            detail: "Provide correct query parameters"
+        );
+    }
+
+    [ApplyResult]
+    [HttpGet("{orderId:guid}")]
+    public async Task<Result<OrderResponse>> GetOrderById([FromRoute(Name = "orderId")] Guid orderId) =>
+        await _orderService.GetOrderByIdAsync(orderId);
 
     [ApplyResult]
     [HttpPost]
