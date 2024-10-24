@@ -13,7 +13,6 @@ public sealed class OrderLineItemConfiguration : IEntityTypeConfiguration<OrderL
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
 
-        builder.HasOne(o => o.Product).WithOne().HasForeignKey<OrderLineItem>(o => o.ProductId).IsRequired();
         builder.Navigation(o => o.Product).AutoInclude();
 
         builder

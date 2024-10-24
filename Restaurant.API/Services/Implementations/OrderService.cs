@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +17,22 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
     private readonly RestaurantDbContext _dbContext = dbContext;
     private readonly IValidator<CreateOrderModel> _validator = validator;
 
-    public async Task<Result<List<OrderResponse>>> GetOrdersAsync(OrderStatus status = OrderStatus.Pending) =>
-        await _orderRepository.WhereAsync<OrderResponse>(o => o.Status == status);
+    public async Task<Result<List<OrderResponse>>> GetOrdersAsync(OrderQuery orderQuery)
+    {
+        if (orderQuery.CustomerId is not null)
+            return await GetOrdersByCustomerAsync(orderQuery.CustomerId.GetValueOrDefault());
+
+        if (orderQuery.WaiterId is not null)
+            return await GetOrdersByEmployeeAsync(orderQuery.WaiterId.GetValueOrDefault());
+
+        if (orderQuery.DeskId is not null)
+            return await GetOrdersByDeskAsync(orderQuery.DeskId.GetValueOrDefault());
+
+        if (orderQuery.Status is not null)
+            return await _orderRepository.WhereAsync<OrderResponse>(o => o.Status == orderQuery.Status);
+
+        return await _orderRepository.SelectAllAsync<OrderResponse>();
+    }
 
     public async Task<Result<OrderResponse>> GetOrderByIdAsync(Guid orderId) =>
         Result.Success(await _orderRepository.WhereFirstAsync<OrderResponse>(o => o.Id == orderId)) ?? Result.NotFound(null!);
@@ -28,7 +43,7 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
     public async Task<Result<List<OrderResponse>>> GetOrdersByEmployeeAsync(Guid employeeId) =>
         await _orderRepository.WhereAsync<OrderResponse>(o => o.Waiter.Id == employeeId);
 
-    public async Task<Result<List<OrderResponse>>> GetOrderByDeskAsync(Guid deskId) =>
+    public async Task<Result<List<OrderResponse>>> GetOrdersByDeskAsync(Guid deskId) =>
         await _orderRepository.WhereAsync<OrderResponse>(o => o.Desk.Id == deskId);
 
     public async Task<Result<OrderResponse>> CreateOrderAsync(CreateOrderModel createOrderModel)

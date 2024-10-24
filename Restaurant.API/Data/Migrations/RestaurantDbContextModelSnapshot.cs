@@ -97,9 +97,9 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("60e20876-9133-4bed-b429-2f03c24c97f1"),
-                            RoleId = new Guid("afe98085-b724-4682-ae78-163ef93dd4be"),
-                            UserId = new Guid("74778f86-b58b-4e5a-953d-6433c816d66e")
+                            Id = new Guid("8f93d98a-ed6e-42ac-a5e3-a8c6eff11562"),
+                            RoleId = new Guid("e665f6f5-2e66-4796-ae9c-d970a6fc0de0"),
+                            UserId = new Guid("93bfd40b-49a8-459a-b8bd-5b526490e16f")
                         });
                 });
 
@@ -129,12 +129,12 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("d4018a6a-b5f4-4975-8bd4-f9ab5d5f40c1"),
+                            Id = new Guid("4957a460-3fb4-4da3-bd3c-93fea5c243b4"),
                             Name = "waiter"
                         },
                         new
                         {
-                            Id = new Guid("afe98085-b724-4682-ae78-163ef93dd4be"),
+                            Id = new Guid("e665f6f5-2e66-4796-ae9c-d970a6fc0de0"),
                             Name = "manager"
                         });
                 });
@@ -225,7 +225,6 @@ namespace Restaurant.API.Data.Migrations
                         .HasDatabaseName("ix_order_line_items_order_id");
 
                     b.HasIndex("ProductId")
-                        .IsUnique()
                         .HasDatabaseName("ix_order_line_items_product_id");
 
                     b.ToTable("order_line_items", (string)null);
@@ -341,52 +340,52 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("357e2e3e-7e2f-4979-9ff7-c3907bd8bff2"),
+                            Id = new Guid("06a1e8ac-da51-43e9-ac2c-f5dfcd438e8a"),
                             Name = "Seafood"
                         },
                         new
                         {
-                            Id = new Guid("57f87102-96ad-4fc4-a9de-702337bcbfec"),
+                            Id = new Guid("f9a3b34b-019e-4aeb-95ed-f73611fc76a9"),
                             Name = "Steaks"
                         },
                         new
                         {
-                            Id = new Guid("a5cfbc0c-8b7e-4ef7-a03d-2bbb629c83aa"),
+                            Id = new Guid("c5d2763e-2822-48fb-a1eb-099676efb89f"),
                             Name = "Sushi"
                         },
                         new
                         {
-                            Id = new Guid("c836cd65-613d-466f-ba11-a791f2400de9"),
+                            Id = new Guid("be6b583d-02d0-422f-bb8f-1c4917cda3c1"),
                             Name = "Barbecue"
                         },
                         new
                         {
-                            Id = new Guid("ffbc3b63-837b-4ab9-9778-822d3c624c83"),
+                            Id = new Guid("13c1edf0-3ed8-4bfc-b282-5ed19d1f092e"),
                             Name = "Hot Dogs"
                         },
                         new
                         {
-                            Id = new Guid("1a3942aa-215e-48f1-a7b9-d352d50ac191"),
+                            Id = new Guid("caf63089-65d8-44b5-8a6d-312217a7093a"),
                             Name = "Pizzas"
                         },
                         new
                         {
-                            Id = new Guid("354844d0-0454-4c75-97cd-e3a8711e054c"),
+                            Id = new Guid("0fb6a30f-a1f9-4b3e-ac6c-abaa346b5641"),
                             Name = "Drinks"
                         },
                         new
                         {
-                            Id = new Guid("c3c85874-9e69-449b-ad1b-1e6c7f0711a1"),
+                            Id = new Guid("b18349cc-08c7-46f1-a297-c1f94b75628f"),
                             Name = "Coffee"
                         },
                         new
                         {
-                            Id = new Guid("19271457-1818-4e9e-b75e-be40afa3ef46"),
+                            Id = new Guid("9ba99028-8961-4d1c-a5f0-6ce3ae23a487"),
                             Name = "Fast Food"
                         },
                         new
                         {
-                            Id = new Guid("509669de-9615-4432-bd23-d3f824c2cc5e"),
+                            Id = new Guid("7345ca63-8cc3-4fc1-9430-473f117d8f96"),
                             Name = "Desserts"
                         });
                 });
@@ -440,11 +439,11 @@ namespace Restaurant.API.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("74778f86-b58b-4e5a-953d-6433c816d66e"),
+                            Id = new Guid("93bfd40b-49a8-459a-b8bd-5b526490e16f"),
                             Email = "victor_samoylov@gmail.com",
                             IsVerified = false,
                             Name = "Victor Samoylov",
-                            PasswordHash = "9A276BA89F9DFE6FCFA2D8598CA3416FC2F09F36567C86644A9A10A9B727FED8-7BEC182DD59275168585E0A4B0DA80F9",
+                            PasswordHash = "D3A9BB4F1ABF2DFD419B038CCFB73165D5D3E542C3DFB962F8DA4550CC44D337-87668C9B71CD59F640FC8B7F34B1D64F",
                             Role = "employee"
                         });
                 });
@@ -527,8 +526,8 @@ namespace Restaurant.API.Data.Migrations
                         .HasConstraintName("fk_order_line_items_orders_order_id");
 
                     b.HasOne("Restaurant.API.Entities.Product", "Product")
-                        .WithOne()
-                        .HasForeignKey("Restaurant.API.Entities.OrderLineItem", "ProductId")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_order_line_items_products_product_id");

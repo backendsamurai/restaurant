@@ -217,8 +217,8 @@ namespace Restaurant.API.Data.Migrations
                 columns: new[] { "id", "name" },
                 values: new object[,]
                 {
-                    { new Guid("afe98085-b724-4682-ae78-163ef93dd4be"), "manager" },
-                    { new Guid("d4018a6a-b5f4-4975-8bd4-f9ab5d5f40c1"), "waiter" }
+                    { new Guid("4957a460-3fb4-4da3-bd3c-93fea5c243b4"), "waiter" },
+                    { new Guid("e665f6f5-2e66-4796-ae9c-d970a6fc0de0"), "manager" }
                 });
 
             migrationBuilder.InsertData(
@@ -226,27 +226,27 @@ namespace Restaurant.API.Data.Migrations
                 columns: new[] { "id", "name" },
                 values: new object[,]
                 {
-                    { new Guid("19271457-1818-4e9e-b75e-be40afa3ef46"), "Fast Food" },
-                    { new Guid("1a3942aa-215e-48f1-a7b9-d352d50ac191"), "Pizzas" },
-                    { new Guid("354844d0-0454-4c75-97cd-e3a8711e054c"), "Drinks" },
-                    { new Guid("357e2e3e-7e2f-4979-9ff7-c3907bd8bff2"), "Seafood" },
-                    { new Guid("509669de-9615-4432-bd23-d3f824c2cc5e"), "Desserts" },
-                    { new Guid("57f87102-96ad-4fc4-a9de-702337bcbfec"), "Steaks" },
-                    { new Guid("a5cfbc0c-8b7e-4ef7-a03d-2bbb629c83aa"), "Sushi" },
-                    { new Guid("c3c85874-9e69-449b-ad1b-1e6c7f0711a1"), "Coffee" },
-                    { new Guid("c836cd65-613d-466f-ba11-a791f2400de9"), "Barbecue" },
-                    { new Guid("ffbc3b63-837b-4ab9-9778-822d3c624c83"), "Hot Dogs" }
+                    { new Guid("06a1e8ac-da51-43e9-ac2c-f5dfcd438e8a"), "Seafood" },
+                    { new Guid("0fb6a30f-a1f9-4b3e-ac6c-abaa346b5641"), "Drinks" },
+                    { new Guid("13c1edf0-3ed8-4bfc-b282-5ed19d1f092e"), "Hot Dogs" },
+                    { new Guid("7345ca63-8cc3-4fc1-9430-473f117d8f96"), "Desserts" },
+                    { new Guid("9ba99028-8961-4d1c-a5f0-6ce3ae23a487"), "Fast Food" },
+                    { new Guid("b18349cc-08c7-46f1-a297-c1f94b75628f"), "Coffee" },
+                    { new Guid("be6b583d-02d0-422f-bb8f-1c4917cda3c1"), "Barbecue" },
+                    { new Guid("c5d2763e-2822-48fb-a1eb-099676efb89f"), "Sushi" },
+                    { new Guid("caf63089-65d8-44b5-8a6d-312217a7093a"), "Pizzas" },
+                    { new Guid("f9a3b34b-019e-4aeb-95ed-f73611fc76a9"), "Steaks" }
                 });
 
             migrationBuilder.InsertData(
                 table: "users",
                 columns: new[] { "id", "email", "name", "password_hash", "role" },
-                values: new object[] { new Guid("74778f86-b58b-4e5a-953d-6433c816d66e"), "victor_samoylov@gmail.com", "Victor Samoylov", "9A276BA89F9DFE6FCFA2D8598CA3416FC2F09F36567C86644A9A10A9B727FED8-7BEC182DD59275168585E0A4B0DA80F9", "employee" });
+                values: new object[] { new Guid("93bfd40b-49a8-459a-b8bd-5b526490e16f"), "victor_samoylov@gmail.com", "Victor Samoylov", "D3A9BB4F1ABF2DFD419B038CCFB73165D5D3E542C3DFB962F8DA4550CC44D337-87668C9B71CD59F640FC8B7F34B1D64F", "employee" });
 
             migrationBuilder.InsertData(
                 table: "employees",
                 columns: new[] { "id", "role_id", "user_id" },
-                values: new object[] { new Guid("60e20876-9133-4bed-b429-2f03c24c97f1"), new Guid("afe98085-b724-4682-ae78-163ef93dd4be"), new Guid("74778f86-b58b-4e5a-953d-6433c816d66e") });
+                values: new object[] { new Guid("8f93d98a-ed6e-42ac-a5e3-a8c6eff11562"), new Guid("e665f6f5-2e66-4796-ae9c-d970a6fc0de0"), new Guid("93bfd40b-49a8-459a-b8bd-5b526490e16f") });
 
             migrationBuilder.CreateIndex(
                 name: "ix_customers_user_id",
@@ -283,8 +283,7 @@ namespace Restaurant.API.Data.Migrations
             migrationBuilder.CreateIndex(
                 name: "ix_order_line_items_product_id",
                 table: "order_line_items",
-                column: "product_id",
-                unique: true);
+                column: "product_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_orders_customer_id",

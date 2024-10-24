@@ -28,6 +28,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 });
 
+// Swagger
+builder.Services.AddSwaggerGen();
+
 // Core
 builder.Services.AddRepositories()
     .AddInternalServices()
@@ -62,6 +65,12 @@ var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+if (builder.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.MapControllers();
 

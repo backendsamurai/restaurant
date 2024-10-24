@@ -13,6 +13,7 @@ using SecurityModels = Restaurant.API.Security.Models;
 using Restaurant.API.Models.Product;
 using Restaurant.API.Caching.Models;
 using Restaurant.API.Models.Order;
+using Restaurant.API.Models.OrderLineItem;
 
 namespace Restaurant.API.Mapping;
 
@@ -98,13 +99,19 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Price, s => s.Price);
 
         config
+            .NewConfig<OrderLineItem, OrderLineItemResponse>()
+            .Map(d => d.ProductName, s => s.Product!.Name)
+            .Map(d => d.ProductPrice, s => s.Product!.Price)
+            .Map(d => d.Count, s => s.Count);
+
+        config
             .NewConfig<Order, OrderResponse>()
-            .Map(d => d.Customer, s => s.Customer.Adapt<CustomerResponse>())
-            .Map(d => d.Waiter, s => s.Waiter.Adapt<EmployeeResponse>())
-            .Map(d => d.Desk, s => s.Desk)
-            .Map(d => d.OrderLineItems, s => s.Items)
+            .Map(d => d.CustomerId, s => s.Customer.Id)
+            .Map(d => d.WaiterId, s => s.Waiter.Id)
+            .Map(d => d.DeskId, s => s.Desk.Id)
+            .Map(d => d.Items, s => s.Items.Adapt<List<OrderLineItemResponse>>())
             .Map(d => d.OrderId, s => s.Id)
-            .Map(d => d.OrderStatus, s => s.Status)
+            .Map(d => d.Status, s => s.Status.Humanize().Underscore())
             .Map(d => d.Payment, s => s.Payment)
             .Map(d => d.CreatedAt, s => s.CreatedAt)
             .Map(d => d.UpdatedAt, s => s.UpdatedAt);

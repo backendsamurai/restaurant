@@ -50,5 +50,5 @@ public sealed class DeskController(IDeskService deskService, IOrderService order
     [ApplyResult]
     [HttpGet("{deskId:guid}/orders")]
     public async Task<Result<List<OrderResponse>>> GetOrders([FromRoute(Name = "deskId")] Guid deskId) =>
-        await _orderService.GetOrderByDeskAsync(deskId);
+        await _orderService.GetOrdersByDeskAsync(deskId);
 }
