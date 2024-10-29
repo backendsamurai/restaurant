@@ -30,7 +30,10 @@ public static class DependencyInjection
             provider.Connection.CreateIndex(typeof(ProductCategoryModel));
             provider.Connection.CreateIndex(typeof(ProductModel));
         }
-        catch { }
+        catch
+        {
+            // ignored
+        }
 
         return services;
     }

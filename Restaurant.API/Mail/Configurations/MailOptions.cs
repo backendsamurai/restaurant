@@ -13,7 +13,7 @@ public sealed class MailOptions
 
 public sealed class MailOptionsSetup(IConfiguration configuration) : IConfigureOptions<MailOptions>
 {
-    public const string SectionName = "Mail";
+    private const string SectionName = "Mail";
     private readonly IConfiguration _configuration = configuration;
 
     public void Configure(MailOptions options)

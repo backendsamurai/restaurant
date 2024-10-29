@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Caching;
 using Restaurant.API.Data;
 using Restaurant.API.Mail;
