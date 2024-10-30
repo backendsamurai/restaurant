@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: './Restaurant.API'
+    container_name: 'restaurant_api'
+    environment:
+      - 'ConnectionStrings__PostgreSQL=Host=db;Port=5432;Username=postgres;Password=yqP6yVoaQKprj3zSA0E3ZA;Database=restaurant;'
+      - 'ConnectionStrings__RedisCache=redis://default:mypassword@cache:6379'
+    ports:
+      - '8080:8080'
+    depends_on:
+      - 'db'
+      - 'cache'
+  db:
+    image: 'postgres:16.4'
+    container_name: 'restaurant_db'
+    environment:
+      - 'POSTGRES_DB=restaurant'
+      - 'POSTGRES_PASSWORD=yqP6yVoaQKprj3zSA0E3ZA'
+    volumes:
+      - './docker/postgres/data:/var/lib/postgresql/data:rw'
+      - './Restaurant.API/init.sql:/docker-entrypoint-initdb.d/init.sql:ro'
+    ports:
+      - '5432:5432'
+  cache:
+    image: 'redis/redis-stack-server:6.2.6-v17'
+    container_name: 'restaurant_cache'
+    environment:
+      - 'REDIS_ARGS=--requirepass mypassword'
+    ports:
+      - '6379:6379'
