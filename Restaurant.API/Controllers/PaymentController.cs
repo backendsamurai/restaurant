@@ -13,17 +13,17 @@ public sealed class PaymentController(IPaymentService paymentService) : Controll
 {
     private readonly IPaymentService _paymentService = paymentService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<Payment>>> GetPayments() =>
         await _paymentService.GetPaymentsAsync();
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{paymentId:guid}")]
     public async Task<Result<Payment>> GetPaymentById([FromRoute(Name = "paymentId")] Guid paymentId) =>
         await _paymentService.GetPaymentByIdAsync(paymentId);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<Payment>> CreatePayment([FromBody] CreatePaymentModel createPaymentModel) =>
         await _paymentService.CreatePaymentAsync(createPaymentModel);

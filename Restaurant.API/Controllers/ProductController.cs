@@ -18,7 +18,7 @@ public sealed class ProductController(IProductService productService) : Controll
     private readonly IProductService _productService = productService;
 
     [AllowAnonymous]
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<Product>>> GetAllProducts([FromQuery(Name = "name")] string? name)
     {
@@ -36,24 +36,24 @@ public sealed class ProductController(IProductService productService) : Controll
     }
 
     [AllowAnonymous]
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<Product>> GetProductById([FromRoute(Name = "id")] Guid id) =>
         await _productService.GetProductByIdAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<Product>> CreateProduct([FromBody] CreateProductModel createProductModel) =>
         await _productService.CreateProductAsync(createProductModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{id:guid}")]
     public async Task<Result<Product>> UpdateProduct(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateProductModel updateProductModel
     ) => await _productService.UpdateProductAsync(id, updateProductModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveProduct([FromRoute(Name = "id")] Guid id) =>
         await _productService.RemoveProductAsync(id);

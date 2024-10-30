@@ -13,7 +13,7 @@ public sealed class OrderController(IOrderService orderService) : ControllerBase
 {
     private readonly IOrderService _orderService = orderService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<OrderResponse>>> GetOrders()
     {
@@ -22,22 +22,22 @@ public sealed class OrderController(IOrderService orderService) : ControllerBase
         return await _orderService.GetOrdersAsync(orderQuery);
     }
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{orderId:guid}")]
     public async Task<Result<OrderResponse>> GetOrderById([FromRoute(Name = "orderId")] Guid orderId) =>
         await _orderService.GetOrderByIdAsync(orderId);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<OrderResponse>> CreateOrder([FromBody] CreateOrderModel createOrderModel) =>
         await _orderService.CreateOrderAsync(createOrderModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{orderId:guid}")]
     public async Task<Result<OrderResponse>> AddPaymentToOrder([FromRoute(Name = "orderId")] Guid orderId, [FromBody] AddPaymentModel addPaymentModel) =>
         await _orderService.AddPaymentAsync(orderId, addPaymentModel.PaymentId);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{orderId:guid}/close")]
     public async Task<Result> CloseOrder([FromRoute(Name = "orderId")] Guid orderId) =>
         await _orderService.CloseOrderAsync(orderId);

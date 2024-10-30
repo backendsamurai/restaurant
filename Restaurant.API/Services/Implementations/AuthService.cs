@@ -19,7 +19,8 @@ public sealed class AuthService(
     IRepository<Employee> employeeRepository,
     IJwtService jwtService,
     IPasswordHasherService passwordHasherService,
-    IValidator<LoginUserModel> loginUserValidator
+    IValidator<LoginUserModel> loginUserValidator,
+    ILogger<AuthService> logger
 ) : IAuthService
 {
     private readonly IRepository<Customer> _customerRepository = customerRepository;
@@ -27,18 +28,23 @@ public sealed class AuthService(
     private readonly IJwtService _jwtService = jwtService;
     private readonly IPasswordHasherService _passwordHasherService = passwordHasherService;
     private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
+    private readonly ILogger<AuthService> _logger = logger;
 
     public async Task<Result<LoginUserResponse>> LoginUserAsync(string audience, UserRole userRole, LoginUserModel loginUserModel)
     {
         var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
 
         if (!validationResult.IsValid)
+        {
+            _logger.LogWarning("Validation error\n{@ErrorMsg}", validationResult.Errors[0].ErrorMessage);
+
             return Result.Invalid(
-               code: "ATZ-000-001",
-               type: "invalid_model",
-               message: "One of field are not valid",
-               detail: "Check all fields and try again"
-           );
+                code: "ATZ-000-001",
+                type: "invalid_model",
+                message: "One of field are not valid",
+                detail: "Check all fields and try again"
+            );
+        }
 
         var info = userRole switch
         {
@@ -48,12 +54,17 @@ public sealed class AuthService(
         };
 
         if (info is null)
+        {
+            string msg = userRole == UserRole.Customer ? "Customer not found" : "Employee not found";
+            _logger.LogWarning("{@msg}", msg);
+
             return Result.NotFound(
                 code: "ATZ-000-002",
                 type: "entity_not_found",
-                message: userRole == UserRole.Customer ? "Customer not found" : "Employee not found",
+                message: msg,
                 detail: "Please provide correct id"
             );
+        }
 
         if (!_passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
             return Result.Error(

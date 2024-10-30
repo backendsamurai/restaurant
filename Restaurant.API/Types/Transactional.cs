@@ -23,7 +23,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             transaction.Rollback();
 
             return errorCallback();
@@ -45,7 +45,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             transaction.Rollback();
 
             return default;
@@ -67,7 +67,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             transaction.Rollback();
 
             return valueWhenError ?? default;
@@ -89,7 +89,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             await transaction.RollbackAsync();
 
             return await errorCallback();
@@ -111,7 +111,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             await transaction.RollbackAsync();
 
             return default;
@@ -133,7 +133,7 @@ public sealed class Transactional(RestaurantDbContext context, ILogger<Transacti
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Rollback transaction");
+            _logger.LogError("Rollback transaction\n{@ErrorMsg}", e.Message);
             await transaction.RollbackAsync();
 
             return valueWhenError ?? default;

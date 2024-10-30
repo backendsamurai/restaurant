@@ -15,7 +15,7 @@ public static class RedisExtensions
         var items = setter();
 
         if (items.Count == 0) return [];
-        
+
         foreach (var item in items)
             collection?.Insert(item.Adapt<TIn>());
 
@@ -25,7 +25,7 @@ public static class RedisExtensions
     public static List<TOut> GetOrSet<TIn, TOut>(this IRedisCollection<TIn>? collection, Expression<Func<TIn, bool>> expression, Func<List<TOut>> setter) where TIn : class
     {
         if (collection is null) return [];
-        
+
         var cachedItems = collection.Where(expression).ToList();
 
         if (cachedItems.Count > 0)
@@ -34,7 +34,7 @@ public static class RedisExtensions
         var items = setter();
 
         if (items.Count <= 0) return [];
-        
+
         foreach (var item in items)
             collection.InsertAsync(item.Adapt<TIn>());
 
@@ -44,7 +44,7 @@ public static class RedisExtensions
     public static TOut? GetOrSet<TIn, TOut>(this IRedisCollection<TIn>? collection, Expression<Func<TIn, bool>> expression, Func<TOut> setter)
     {
         if (collection is null) return default;
-        
+
         var itemFromCache = collection.FirstOrDefault(expression);
 
         if (itemFromCache is not null)
@@ -63,14 +63,14 @@ public static class RedisExtensions
     public static async Task<List<TOut>> GetOrSetAsync<TIn, TOut>(this IRedisCollection<TIn>? collection, Func<Task<List<TOut>>> setter)
     {
         if (collection is null) return [];
-        
+
         if (await collection.CountAsync() > 0)
             return collection.Adapt<List<TOut>>();
 
         var items = await setter();
 
         if (items.Count == 0) return [];
-            
+
         foreach (var item in items)
             await collection.InsertAsync(item.Adapt<TIn>());
 
@@ -81,7 +81,7 @@ public static class RedisExtensions
     public static async Task<List<TOut>> GetOrSetAsync<TIn, TOut>(this IRedisCollection<TIn>? collection, Expression<Func<TIn, bool>> expression, Func<Task<List<TOut>>> setter) where TIn : class
     {
         if (collection is null) return [];
-        
+
         var cached = await collection.Where(expression).ToListAsync();
 
         if (cached.Count > 0)
@@ -90,7 +90,7 @@ public static class RedisExtensions
         var items = await setter();
 
         if (items.Count == 0) return [];
-        
+
         foreach (var item in items)
             await collection.InsertAsync(item.Adapt<TIn>());
 
@@ -101,7 +101,7 @@ public static class RedisExtensions
     public static async Task<TOut?> GetOrSetAsync<TIn, TOut>(this IRedisCollection<TIn>? collection, Expression<Func<TIn, bool>> expression, Func<Task<TOut>> setter)
     {
         if (collection is null) return default;
-        
+
         var itemFromCache = await collection.FirstOrDefaultAsync(expression);
 
         if (itemFromCache is not null)

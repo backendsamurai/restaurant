@@ -15,13 +15,13 @@ public class EmailVerificationController(IEmailVerificationService emailVerifica
 {
     private readonly IEmailVerificationService _emailVerificationService = emailVerificationService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize]
     [HttpPost("send")]
     public async Task<Result> SendVerification() =>
         await _emailVerificationService.SendVerificationEmailAsync(User.Adapt<AuthenticatedUser>());
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize]
     [HttpPost("check")]
     public async Task<Result> CheckVerification([FromBody] EmailVerificationModel verificationModel) =>

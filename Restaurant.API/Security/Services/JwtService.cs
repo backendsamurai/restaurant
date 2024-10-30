@@ -9,12 +9,14 @@ using Restaurant.API.Types;
 
 namespace Restaurant.API.Security.Services;
 
-public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IJwtService
+public sealed class JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtService> logger) : IJwtService
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly ILogger<JwtService> _logger = logger;
 
     public Result<string> GenerateToken(string audience, List<Claim> claims)
     {
+        _logger.LogInformation("Generating JWT token");
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecurityKey));
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha512);
 
@@ -31,16 +33,22 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions) : IJwtService
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.WriteToken(tokenDescription);
 
+            _logger.LogInformation("JWT token successfully generated");
+
             return Result.Success(token);
         }
         catch
         {
-            return Result.Error(
+            var err = new DetailedError(
                 code: "0010",
                 type: "token_generation_error",
                 message: "Cannot generate authentication token",
                 detail: "Please check provided credentials and try again later"
             );
+
+            _logger.LogError("Error while generating JWT token\nErr:{@Error}", err);
+
+            return Result.Error(err);
         }
     }
 }

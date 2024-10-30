@@ -18,7 +18,7 @@ public class EmployeeRoleController(
 {
     private readonly IEmployeeRoleService _employeeRoleService = employeeRoleService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpGet]
     public async Task<Result<List<EmployeeRole>>> GetAllRoles([FromQuery(Name = "name")] string? name)
@@ -36,20 +36,20 @@ public class EmployeeRoleController(
         return await _employeeRoleService.GetAllEmployeeRolesAsync();
     }
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpGet("{id:guid}")]
     public async Task<Result<EmployeeRole>> GetRoleById([FromRoute(Name = "id")] Guid id) =>
         await _employeeRoleService.GetEmployeeRoleByIdAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPost]
     public async Task<Result<EmployeeRole>> CreateRole(
         [FromBody] CreateEmployeeRoleModel createEmployeeRoleModel
     ) => await _employeeRoleService.CreateEmployeeRoleAsync(createEmployeeRoleModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeRole>> UpdateRole(
@@ -57,7 +57,7 @@ public class EmployeeRoleController(
         [FromBody] UpdateEmployeeRoleModel updateEmployeeRoleModel
     ) => await _employeeRoleService.UpdateEmployeeRoleAsync(id, updateEmployeeRoleModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveRole([FromRoute(Name = "id")] Guid id) =>

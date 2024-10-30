@@ -32,7 +32,7 @@ public sealed class SendEmailVerificationConsumer : IConsumer<EmailSendMetadata<
 
     private async Task SimulateSendEmail(EmailSendMetadata<EmailVerificationModel> metadata)
     {
-        _logger.LogInformation("Sending verification mail to : {recipient}", metadata.RecipientEmail);
+        _logger.LogInformation("Fake Sending verification mail to : {recipient}", metadata.RecipientEmail);
 
         await Task.Delay(TimeSpan.FromSeconds(5));
     }

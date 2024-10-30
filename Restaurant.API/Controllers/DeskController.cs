@@ -17,23 +17,23 @@ public sealed class DeskController(IDeskService deskService, IOrderService order
     private readonly IDeskService _deskService = deskService;
     private readonly IOrderService _orderService = orderService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<Desk>>> GetAllDesks() =>
         await _deskService.GetAllDesksAsync();
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<Desk>> GetDeskById([FromRoute(Name = "id")] Guid id) =>
         await _deskService.GetDeskByIdAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPost]
     public async Task<Result<Desk>> CreateDesk([FromBody] CreateDeskModel createDeskModel) =>
         await _deskService.CreateDeskAsync(createDeskModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPatch("{id:guid}")]
     public async Task<Result<Desk>> UpdateDesk(
@@ -41,13 +41,13 @@ public sealed class DeskController(IDeskService deskService, IOrderService order
         [FromBody] UpdateDeskModel updateDeskModel
     ) => await _deskService.UpdateDeskAsync(id, updateDeskModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(AuthorizationPolicies.RequireEmployeeManager)]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveDesk([FromRoute(Name = "id")] Guid id) =>
         await _deskService.RemoveDeskAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{deskId:guid}/orders")]
     public async Task<Result<List<OrderResponse>>> GetOrders([FromRoute(Name = "deskId")] Guid deskId) =>
         await _orderService.GetOrdersByDeskAsync(deskId);

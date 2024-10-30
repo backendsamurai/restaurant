@@ -29,7 +29,7 @@ public sealed class EmployeeController(
     private readonly IRepository<Employee> _employeeRepository = employeeRepository;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<EmployeeResponse>>> GetEmployees(
         [FromQuery(Name = "email")] string? email, [FromQuery(Name = "role")] string? role)
@@ -63,34 +63,34 @@ public sealed class EmployeeController(
         return await _employeeService.GetAllEmployeesAsync();
     }
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<EmployeeResponse>> GetEmployeeById([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.GetEmployeeByIdAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<EmployeeResponse>> CreateEmployee([FromBody] CreateEmployeeModel createEmployeeModel) =>
         await _employeeService.CreateEmployeeAsync(createEmployeeModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeResponse>> UpdateEmployee(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateEmployeeModel updateEmployeeModel
     ) => await _employeeService.UpdateEmployeeAsync(id, updateEmployeeModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveEmployee([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.RemoveEmployeeAsync(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{employeeId:guid}/orders")]
     public async Task<Result<List<OrderResponse>>> GetOrdersByEmployee([FromRoute(Name = "employeeId")] Guid employeeId) =>
         await _orderService.GetOrdersByEmployeeAsync(employeeId);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost("authentication")]
     public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel)
     {

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Restaurant.API.Data.EntityConfigurations;
 using Restaurant.API.Data.Seeders;
@@ -9,11 +10,11 @@ using Restaurant.API.Security.Services.Contracts;
 namespace Restaurant.API.Data;
 
 public sealed class RestaurantDbContext(
-    DbContextOptions options,
+    IConfiguration configuration,
     IOptions<ManagerOptions> managerOptions,
     IPasswordHasherService passwordHasher,
     ILogger<RestaurantDbContext> logger
-) : DbContext(options)
+) : DbContext
 {
     public DbSet<User> Users { get; set; }
     public DbSet<Customer> Customers { get; set; }
@@ -25,6 +26,16 @@ public sealed class RestaurantDbContext(
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderLineItem> OrderLineItems { get; set; }
     public DbSet<Payment> Payments { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        var connectionString = configuration.GetConnectionString("PostgreSQL");
+
+        optionsBuilder
+            .UseNpgsql(connectionString)
+            .LogTo(msg => logger.LogInformation(msg), LogLevel.Information, DbContextLoggerOptions.UtcTime | DbContextLoggerOptions.SingleLine)
+            .UseSnakeCaseNamingConvention();
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

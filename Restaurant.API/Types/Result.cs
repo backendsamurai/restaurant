@@ -86,6 +86,8 @@ public class Result : IResult
 
         return new { Status, Error = DetailedError };
     }
+
+    public DetailedError? GetDetailedError() => DetailedError;
 }
 
 public class Result<T> : IResult where T : class
@@ -191,4 +193,6 @@ public class Result<T> : IResult where T : class
             Error = DetailedError
         };
     }
+
+    public DetailedError? GetDetailedError() => DetailedError;
 }

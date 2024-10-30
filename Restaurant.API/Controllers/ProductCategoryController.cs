@@ -16,7 +16,7 @@ public sealed class ProductCategoryController(
 {
     private readonly IProductCategoryService _productCategoryService = productCategoryService;
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<ProductCategory>>> GetAllCategories([FromQuery(Name = "name")] string? name)
     {
@@ -33,24 +33,24 @@ public sealed class ProductCategoryController(
         return await _productCategoryService.GetProductCategories();
     }
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<ProductCategory>> GetCategoryById([FromRoute(Name = "id")] Guid id)
         => await _productCategoryService.GetProductCategoryById(id);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<ProductCategory>> CreateCategory([FromBody] CreateProductCategoryModel createProductCategoryModel)
         => await _productCategoryService.CreateProductCategory(createProductCategoryModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{id:guid}")]
     public async Task<Result<ProductCategory>> UpdateCategory(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateProductCategoryModel updateProductCategoryModel
     ) => await _productCategoryService.UpdateProductCategory(id, updateProductCategoryModel);
 
-    [ApplyResult]
+    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveCategory([FromRoute(Name = "id")] Guid id)
         => await _productCategoryService.RemoveProductCategory(id);
