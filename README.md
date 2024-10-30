@@ -13,6 +13,13 @@
 - **Mapster** (.NET library for mapping objects)
 - **Humanizer** (.NET library for converting strings,numbers, etc. to human readable format)
 
+## Roadmap (future updates)
+
+- Move controllers to library (**Restaurant.API.Presentation**) and rewrite using minimal api
+- Move entities to domain library (**Restaurant.API.Domain**) and convert into aggregates with value object
+- Move services call into **MediatR** handlers
+- Move entity configurations, mail, messaging and other to infrastructure layer (**Restaurant.API.Infrastructure**)
+
 ## How to start
 
 - With docker
