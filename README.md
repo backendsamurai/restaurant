@@ -19,6 +19,7 @@
 - Move entities to domain library (**Restaurant.API.Domain**) and convert into aggregates with value object
 - Move services call into **MediatR** handlers
 - Move entity configurations, mail, messaging and other to infrastructure layer (**Restaurant.API.Infrastructure**)
+- Add more parameters for sorting, filtering (by date for example) to API routes
 
 ## How to start
 
