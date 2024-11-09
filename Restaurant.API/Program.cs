@@ -10,6 +10,7 @@ using Restaurant.API.Repositories;
 using Restaurant.API.Security;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Services;
+using Restaurant.API.Storage;
 using Restaurant.API.Types;
 using Restaurant.API.Validators;
 using Serilog;
@@ -79,6 +80,12 @@ try
 
     // Custom Attributes
     builder.Services.AddCustomAttributes();
+
+    // AWS S3 storage with Minio Server
+    builder.Services.AddStorageConfiguration()
+        .AddS3Storage()
+        .AddStorageServices();
+
 
     await using var app = builder.Build();
 
