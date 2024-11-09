@@ -28,7 +28,7 @@ public class EmployeeRoleController(
             var validationResult = QueryValidationHelper.Validate(name);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _employeeRoleService.GetEmployeeRoleByNameAsync(name);
         }

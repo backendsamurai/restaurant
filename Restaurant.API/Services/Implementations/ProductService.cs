@@ -33,15 +33,7 @@ public sealed class ProductService(
         var product = await _cache.GetOrSetAsync(
             p => p.Id == id, async () => await _productRepository.SelectByIdAsync(id));
 
-        if (product is null)
-            return Result.NotFound(
-                code: "PDS-000-001",
-                type: "entity_not_found",
-                message: "Product not found",
-                detail: "Please provide correct id and try again"
-            );
-
-        return product;
+        return product is null ? DetailedError.NotFound("Provide correct product ID") : product;
     }
 
     public async Task<Result<List<Product>>> GetProductsByNameAsync(string name) =>
@@ -53,32 +45,17 @@ public sealed class ProductService(
         var validationResult = await _createProductModelValidator.ValidateAsync(createProductModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(
-                code: "PDS-000-002",
-                type: "invalid_model",
-                message: "One of field is invalid",
-                detail: "Please provide correct data and try again"
-            );
+            return DetailedError.Invalid("One of field is invalid", "Please provide correct data and try again");
 
         var productFromDb = await _productRepository.FirstOrDefaultAsync(p => p.Name == createProductModel.Name);
 
         if (productFromDb is not null)
-            return Result.Conflict(
-                code: "PDS-100-001",
-                type: "entity_already_exists",
-                message: "Product with this name already exists",
-                detail: "Please check provided name or provide another name of product"
-            );
+            return DetailedError.Conflict("Product with this name already exists", "Please check provided name or provide another name of product");
 
         var productCategory = await _productCategoryRepository.SelectByIdAsync(createProductModel.CategoryId);
 
         if (productCategory is null)
-            return Result.NotFound(
-                code: "PDS-000-003",
-                type: "entity_not_found",
-                message: "Category of product not found",
-                detail: "Please provide correct category id and try again"
-            );
+            return DetailedError.NotFound("Category of product not found", "Please provide correct category id and try again");
 
         var product = createProductModel.Adapt<Product>();
 
@@ -89,12 +66,7 @@ public sealed class ProductService(
         if (createdProduct is not null)
             return Result.Created(createdProduct);
 
-        return Result.Error(
-            code: "PDS-100-001",
-            type: "error_while_creating_product",
-            message: "Cannot create product",
-            detail: "Unexpected error"
-        );
+        return DetailedError.CreatingProblem("Cannot create product", "Unexpected error");
     }
 
     public async Task<Result<Product>> UpdateProductAsync(Guid id, UpdateProductModel updateProductModel)
@@ -104,12 +76,7 @@ public sealed class ProductService(
         var product = await _productRepository.SelectByIdAsync(id);
 
         if (product is null)
-            return Result.NotFound(
-                code: "PDS-000-001",
-                type: "entity_not_found",
-                message: "Product not found",
-                detail: "Please provide correct id and try again"
-            );
+            return DetailedError.NotFound("Provide correct product ID");
 
         if (updateProductModel.Name is not null && updateProductModel.Name != product.Name)
         {
@@ -117,12 +84,7 @@ public sealed class ProductService(
                 .ValidateAsync(updateProductModel, opt => opt.IncludeProperties(x => x.Name));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(
-                    code: "PDS-000-002",
-                    type: "invalid_model",
-                    message: "One of field is invalid",
-                    detail: "Please provide correct data and try again"
-                );
+                return DetailedError.Invalid("Invalid name", validationResult.Errors.First().ErrorMessage);
 
             product.Name = updateProductModel.Name;
             isModified = true;
@@ -134,12 +96,7 @@ public sealed class ProductService(
                 .ValidateAsync(updateProductModel, opt => opt.IncludeProperties(x => x.Description));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(
-                    code: "PDS-000-002",
-                    type: "invalid_model",
-                    message: "One of field is invalid",
-                    detail: "Please provide correct data and try again"
-                );
+                return DetailedError.Invalid("Invalid description", validationResult.Errors.First().ErrorMessage);
 
             product.Description = updateProductModel.Description;
             isModified = true;
@@ -150,12 +107,7 @@ public sealed class ProductService(
             var validationResult = await _updateProductModelValidator.ValidateAsync(updateProductModel, opt => opt.IncludeProperties(x => x.Price));
 
             if (!validationResult.IsValid)
-                return Result.Invalid(
-                    code: "PDS-000-002",
-                    type: "invalid_model",
-                    message: "One of field is invalid",
-                    detail: "Please provide correct data and try again"
-                );
+                return DetailedError.Invalid("Invalid price", validationResult.Errors.First().ErrorMessage);
 
             product.OldPrice = product.Price;
             product.Price = (decimal)updateProductModel.Price;
@@ -167,12 +119,7 @@ public sealed class ProductService(
             var category = await _productCategoryRepository.SelectByIdAsync((Guid)updateProductModel.CategoryId);
 
             if (category is null)
-                return Result.NotFound(
-                    code: "PDS-000-003",
-                    type: "entity_not_found",
-                    message: "Product category not found",
-                    detail: "Provide correct category id"
-                );
+                return DetailedError.NotFound("Product category not found", "Provide correct category id");
 
             product.Category = category;
             isModified = true;
@@ -186,12 +133,7 @@ public sealed class ProductService(
                 return Result.Success(product);
             }
 
-            return Result.Error(
-                code: "PDS-100-003",
-                type: "error_while_updating_product",
-                message: "Cannot update product",
-                detail: "Unexpected error"
-            );
+            return DetailedError.UpdatingProblem("Cannot update product", "Unexpected error");
         }
 
         return Result.NoContent();
@@ -202,12 +144,7 @@ public sealed class ProductService(
         var product = await _productRepository.SelectByIdAsync(id);
 
         if (product is null)
-            return Result.NotFound(
-                code: "PDS-000-001",
-                type: "entity_not_found",
-                message: "Product not found",
-                detail: "Please provide correct id"
-            );
+            return DetailedError.NotFound("Provide correct product ID");
 
         var isRemoved = await _productRepository.RemoveAsync(product);
 
@@ -217,11 +154,6 @@ public sealed class ProductService(
             return Result.NoContent();
         }
 
-        return Result.Error(
-            code: "PDS-100-002",
-            type: "error_while_removing_product",
-            message: "Cannot remove product",
-            detail: "Unexpected error"
-        );
+        return DetailedError.RemoveProblem("Cannot remove product", "Unexpected error");
     }
 }

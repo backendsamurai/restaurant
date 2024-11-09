@@ -63,11 +63,12 @@ public sealed class StorageService(IAmazonS3 s3Client, ILogger<StorageService> l
         {
             _logger.LogError("Error while uploading file to Minio storage: {@ErrMsg}", e.Message);
 
-            return Result.Error(
-                code: "STS-000-001",
-                type: "upload_file_error",
-                message: "Error while uploading file to storage",
-                detail: "Check provided data and try again"
+            return DetailedError.Create((b) => b
+                .WithStatus(ResultStatus.Error)
+                .WithSeverity(ErrorSeverity.Error)
+                .WithType("UPLOADING_FILE_ERROR")
+                .WithTitle("Error while uploading file")
+                .WithMessage("Try again later")
             );
         }
     }

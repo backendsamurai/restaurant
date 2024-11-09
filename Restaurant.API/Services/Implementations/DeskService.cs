@@ -30,13 +30,7 @@ public sealed class DeskService(
     {
         var desk = await _cache.GetOrSetAsync(d => d.Id == id, async () => await _repository.SelectByIdAsync(id));
 
-        return desk is null
-            ? Result.NotFound(
-                code: "DSK-000-001",
-                type: "entity_not_found",
-                message: "Desk not found",
-                detail: "Please provide correct id"
-            ) : Result.Success(desk);
+        return desk is null ? DetailedError.NotFound("Please provide correct id") : Result.Success(desk);
     }
 
     public async Task<Result<Desk>> CreateDeskAsync(CreateDeskModel createDeskModel)
@@ -44,22 +38,12 @@ public sealed class DeskService(
         var validationResult = await _createDeskValidator.ValidateAsync(createDeskModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(
-                code: "DSK-000-002",
-                type: "invalid_model",
-                message: "One of field are not valid",
-                detail: "Check all fields and try again"
-            );
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var desk = await _repository.Where(d => d.Name == createDeskModel.Name!).FirstOrDefaultAsync();
 
         if (desk is not null)
-            return Result.Conflict(
-                code: "DSK-000-003",
-                type: "conflict_entities",
-                message: "Desk is already exists",
-                detail: "Please verify parameter 'name'"
-            );
+            return DetailedError.Conflict("Desk is already exists", "Please verify parameter 'name'");
 
         var newDesk = await _repository.AddAsync(new Desk { Name = createDeskModel.Name! });
 
@@ -69,12 +53,7 @@ public sealed class DeskService(
             return Result.Created(newDesk);
         }
 
-        return Result.Error(
-            code: "DSK-100-001",
-            type: "error_create_desk",
-            message: "Cannot create desk",
-            detail: "Unexpected error"
-        );
+        return DetailedError.CreatingProblem("Cannot create desk", "Unexpected error");
     }
 
     public async Task<Result<Desk>> UpdateDeskAsync(Guid id, UpdateDeskModel updateDeskModel)
@@ -82,22 +61,12 @@ public sealed class DeskService(
         var validationResult = await _updateDeskValidator.ValidateAsync(updateDeskModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(
-                code: "DSK-000-002",
-                type: "invalid_model",
-                message: "One of field are not valid",
-                detail: "Check all fields and try again"
-            );
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var desk = await _repository.SelectByIdAsync(id);
 
         if (desk is null)
-            return Result.NotFound(
-                code: "DSK-000-001",
-                type: "entity_not_found",
-                message: "Desk not found",
-                detail: "Please provide correct id"
-            );
+            return DetailedError.NotFound("Please provide correct id");
 
         if (desk.Name == updateDeskModel.Name!)
             return Result.NoContent();
@@ -112,12 +81,7 @@ public sealed class DeskService(
             return Result.Success(desk);
         }
 
-        return Result.Error(
-            code: "DSK-100-002",
-            type: "entity_update_error",
-            message: "Error while updating desk",
-            detail: "Check all provided data and try again later"
-        );
+        return DetailedError.UpdatingProblem("Error while updating desk", "Check all provided data and try again later");
     }
 
     public async Task<Result> RemoveDeskAsync(Guid id)
@@ -125,12 +89,7 @@ public sealed class DeskService(
         var desk = await _repository.SelectByIdAsync(id);
 
         if (desk is null)
-            return Result.NotFound(
-                code: "DSK-000-001",
-                type: "entity_not_found",
-                message: "Desk not found",
-                detail: "Please provide correct id"
-            );
+            return DetailedError.NotFound("Please provide correct id");
 
         var isRemoved = await _repository.RemoveAsync(desk);
 
@@ -140,11 +99,6 @@ public sealed class DeskService(
             return Result.NoContent();
         }
 
-        return Result.Error(
-            code: "DSK-100-003",
-            type: "error_while_remove_desk",
-            message: "Cannot remove desk",
-            detail: "Unexpected error"
-        );
+        return DetailedError.RemoveProblem("Cannot remove desk", "Unexpected error");
     }
 }

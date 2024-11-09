@@ -25,7 +25,7 @@ public sealed class ProductCategoryController(
             var validationResult = QueryValidationHelper.Validate(name);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _productCategoryService.GetProductCategoriesByName(name);
         }

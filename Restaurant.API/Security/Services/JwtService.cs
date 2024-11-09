@@ -39,16 +39,17 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtServi
         }
         catch
         {
-            var err = new DetailedError(
-                code: "0010",
-                type: "token_generation_error",
-                message: "Cannot generate authentication token",
-                detail: "Please check provided credentials and try again later"
+            var err = DetailedError.Create(b => b
+                .WithStatus(ResultStatus.Error)
+                .WithSeverity(ErrorSeverity.Error)
+                .WithType("TOKEN_GENERATION_PROBLEM")
+                .WithTitle("Cannot generate authentication token")
+                .WithMessage("Please check provided credentials and try again later")
             );
 
             _logger.LogError("Error while generating JWT token\nErr:{@Error}", err);
 
-            return Result.Error(err);
+            return err;
         }
     }
 }

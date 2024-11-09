@@ -39,7 +39,7 @@ public sealed class EmployeeController(
             var validationResult = QueryValidationHelper.Validate(email);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _employeeService.GetEmployeeByEmailAsync(email);
         }
@@ -49,7 +49,7 @@ public sealed class EmployeeController(
             var validationResult = QueryValidationHelper.Validate(role);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _employeeService.GetEmployeeByRoleAsync(role);
         }
@@ -97,7 +97,7 @@ public sealed class EmployeeController(
         var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
 
         if (audienceDetectResult.IsError)
-            return Result.Error(audienceDetectResult.DetailedError!);
+            return audienceDetectResult.DetailedError!;
 
         return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Employee, loginUserModel);
     }

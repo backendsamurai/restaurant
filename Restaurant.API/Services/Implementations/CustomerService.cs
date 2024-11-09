@@ -42,11 +42,9 @@ public sealed class CustomerService(
             var userFromDb = await _userRepository.FirstOrDefaultAsync(u => u.Email == createCustomerModel.Email!);
 
             if (userFromDb is not null)
-                return Result.Conflict(
-                    code: "CSR-000-001",
-                    type: "entity_already_exists",
-                    message: "Customer with this email already exists",
-                    detail: "Please check provided email or provide another email address"
+                return DetailedError.Conflict(
+                    "Customer with this email already exists",
+                    "Please check provided email or provide another email address"
                 );
 
             var user = new User
@@ -70,20 +68,10 @@ public sealed class CustomerService(
                 return Result.Created(customerResponse);
             }
 
-            return Result.Error(
-                code: "CSR-100-001",
-                type: "error_while_creation_customer",
-                message: "Cannot create customer",
-                detail: "Unexpected error"
-            );
+            return DetailedError.CreatingProblem("Cannot create customer", "Unexpected error");
         }
 
-        return Result.Invalid(
-            code: "CSR-000-002",
-            type: "invalid_model",
-            message: "One of field are not valid",
-            detail: "Check all fields and try again"
-        );
+        return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
     }
 
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
@@ -91,13 +79,7 @@ public sealed class CustomerService(
         var customer = await _cache.GetOrSetAsync(c => c.CustomerId == id,
             async () => await _customerRepository.WhereFirstAsync<CustomerResponse>(c => c.Id == id));
 
-        return customer is null
-            ? Result.NotFound(
-                code: "CSR-000-003",
-                type: "entity_not_found",
-                message: "Customer not found",
-                detail: "Please provide correct id"
-            ) : Result.Success(customer);
+        return customer is null ? DetailedError.NotFound("Please provide correct id") : Result.Success(customer);
     }
 
     public async Task<Result<CustomerResponse>> UpdateCustomerAsync(
@@ -108,20 +90,10 @@ public sealed class CustomerService(
         var customer = await _customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
-            return Result.NotFound(
-                code: "CSR-000-003",
-                type: "entity_not_found",
-                message: "Customer not found",
-                detail: "Please provide correct id"
-            );
+            return DetailedError.NotFound("Please provide correct id");
 
         if (customer.User.Email != authenticatedUser.Email)
-            return Result.Unauthorized(
-                code: "CSR-100-051",
-                type: "missing_authorization",
-                message: "Unauthorized",
-                detail: "Please provide authentication"
-            );
+            return DetailedError.Unauthorized("Please provide authorization first");
 
         if (updateCustomerModel.Name is not null && updateCustomerModel.Name != customer.User.Name)
         {
@@ -129,12 +101,7 @@ public sealed class CustomerService(
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Name));
 
             if (!nameValidationResult.IsValid)
-                return Result.Invalid(
-                    code: "CSR-000-002",
-                    type: "invalid_model",
-                    message: "One of field are not valid",
-                    detail: "Check all fields and try again"
-                );
+                return DetailedError.Invalid("Invalid name", nameValidationResult.Errors.First().ErrorMessage);
 
             customer.User.Name = updateCustomerModel.Name;
             isModified = true;
@@ -146,12 +113,7 @@ public sealed class CustomerService(
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Email));
 
             if (!emailValidationResult.IsValid)
-                return Result.Invalid(
-                    code: "CSR-000-002",
-                    type: "invalid_model",
-                    message: "One of field are not valid",
-                    detail: "Check all fields and try again"
-                );
+                return DetailedError.Invalid("Invalid email", emailValidationResult.Errors.First().ErrorMessage);
 
             customer.User.Email = updateCustomerModel.Email;
             isModified = true;
@@ -163,12 +125,7 @@ public sealed class CustomerService(
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Password));
 
             if (!passwordValidationResult.IsValid)
-                return Result.Invalid(
-                   code: "CSR-000-002",
-                    type: "invalid_model",
-                    message: "One of field are not valid",
-                    detail: "Check all fields and try again"
-                );
+                return DetailedError.Invalid("Invalid password", passwordValidationResult.Errors.First().ErrorMessage);
 
             customer.User.PasswordHash = _passwordHasher.Hash(updateCustomerModel.Password);
             isModified = true;
@@ -186,12 +143,7 @@ public sealed class CustomerService(
                 return Result.Success(customerResponse);
             }
 
-            return Result.Error(
-                code: "CSR-100-002",
-                type: "error_while_updating_customer",
-                message: "Cannot update customer",
-                detail: "Unexpected error"
-            );
+            return DetailedError.UpdatingProblem("Cannot update customer", "Unexpected error");
         }
 
         return Result.NoContent();
@@ -202,20 +154,10 @@ public sealed class CustomerService(
         var customer = await _customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
-            return Result.NotFound(
-                code: "CSR-440-003",
-                type: "entity_not_found",
-                message: "Customer not found",
-                detail: "Please provide correct id"
-            );
+            return DetailedError.NotFound("Please provide correct id");
 
         if (customer.User.Email != authenticatedUser.Email)
-            return Result.Unauthorized(
-                code: "CSR-554-051",
-                type: "missing_authorization",
-                message: "Unauthorized",
-                detail: "Please provide authentication"
-            );
+            return DetailedError.Unauthorized("Please provide authorization first");
 
         var isRemoved = await _customerRepository.RemoveAsync(customer);
 
@@ -225,11 +167,6 @@ public sealed class CustomerService(
             return Result.Success();
         }
 
-        return Result.Error(
-            code: "CSR-554-003",
-            type: "error_while_removing_customer",
-            message: "Cannot remove customer",
-            detail: "Unexpected error"
-        );
+        return DetailedError.UpdatingProblem("Cannot remove customer", "Unexpected error");
     }
 }

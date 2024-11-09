@@ -27,7 +27,7 @@ public sealed class ProductController(IProductService productService) : Controll
             var validationResult = QueryValidationHelper.Validate(name);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _productService.GetProductsByNameAsync(name);
         }

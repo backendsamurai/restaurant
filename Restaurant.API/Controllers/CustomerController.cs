@@ -66,7 +66,7 @@ public sealed class CustomerController(
             var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
 
             if (audienceDetectResult.IsError)
-                  return Result.Error(audienceDetectResult.DetailedError!);
+                  return audienceDetectResult.DetailedError!;
 
             return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Customer, loginUserModel);
       }
