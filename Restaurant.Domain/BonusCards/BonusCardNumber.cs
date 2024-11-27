@@ -14,7 +14,7 @@ namespace Restaurant.Domain.BonusCards
             'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
         ];
 
-        private const int CardNumberLength = 8;
+        private const int Length = 8;
 
         private BonusCardNumber(string value) => Value = value;
 
@@ -22,7 +22,7 @@ namespace Restaurant.Domain.BonusCards
 
         public static BonusCardNumber Create()
         {
-            while (_sb.Length < CardNumberLength)
+            while (_sb.Length < Length)
             {
                 _sb.Append(_random.Next(10, 99));
                 _sb.Append(_random.Next(0, Characters.Length - 1));

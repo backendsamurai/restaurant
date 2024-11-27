@@ -70,6 +70,8 @@ namespace Restaurant.Domain.Users
             zipCode: string.Empty
         );
 
+        public static implicit operator string(Address address) => address.ToString();
+
         private static bool CheckZipCodeIsValid(string zipCode)
         {
             if (zipCode.Length < 5 || zipCode.Length > 5)
@@ -77,6 +79,13 @@ namespace Restaurant.Domain.Users
 
             return zipCode.Where(char.IsDigit).Count() == zipCode.Length;
         }
+
+        public override string ToString() =>
+            string.Format(
+                "{0}, {1} - {2}, st.{3}, {4}",
+                Country, City,
+                Region, Street, ZipCode
+            );
 
         protected override IEnumerable<object> GetAtomicValues()
         {
