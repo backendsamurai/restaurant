@@ -31,13 +31,13 @@ namespace Restaurant.Domain.Core.Primitives
             return GetAtomicValues().SequenceEqual(valueObject.GetAtomicValues());
         }
 
-        protected abstract IEnumerable<object> GetAtomicValues();
+        protected abstract IEnumerable<object?> GetAtomicValues();
 
         public override int GetHashCode()
         {
             HashCode hashCode = default;
 
-            foreach (object obj in GetAtomicValues())
+            foreach (object? obj in GetAtomicValues())
                 hashCode.Add(obj);
 
             return hashCode.GetHashCode();

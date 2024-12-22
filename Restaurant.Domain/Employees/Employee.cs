@@ -2,43 +2,49 @@ using Restaurant.Domain.BonusCards;
 using Restaurant.Domain.Core.Abstractions;
 using Restaurant.Domain.Core.Guards;
 using Restaurant.Domain.Core.Primitives;
-using Restaurant.Domain.PaymentMethods;
-using Restaurant.Domain.Users.DomainEvents;
+using Restaurant.Domain.Employees.DomainEvents;
+using Restaurant.Domain.Users;
 
-namespace Restaurant.Domain.Users
+namespace Restaurant.Domain.Employees
 {
-    public sealed class User : AggregateRoot, IAuditableEntity
+    public sealed class Employee : AggregateRoot, IAuditableEntity
     {
         private string _passwordHash;
-        private readonly List<LikedProduct> _likedProducts = [];
-        private readonly List<PaymentMethod> _paymentMethods = [];
-
         public FirstName FirstName { get; private set; }
         public LastName LastName { get; private set; }
         public string FullName => $"{FirstName} {LastName}";
         public Email Email { get; private set; }
-        public PhoneNumber? PhoneNumber { get; private set; }
-        public DateOfBirth? DateOfBirth { get; private set; }
-        public BonusCard BonusCard { get; set; }
-        public Address Address { get; set; } = Address.Empty;
-        public IReadOnlyCollection<LikedProduct> LikedProducts => _likedProducts.AsReadOnly();
-        public IReadOnlyCollection<PaymentMethod> PaymentMethods => _paymentMethods.AsReadOnly();
+        public PhoneNumber PhoneNumber { get; private set; }
+        public DateOfBirth DateOfBirth { get; private set; }
+        public Address Address { get; private set; } = Address.Empty;
+        public BonusCard BonusCard { get; private set; }
+        public EmployeeRole Role { get; private set; }
+        public WorkStatus Status { get; private set; }
+        public WorkPeriod WorkPeriod { get; private set; }
+        public DateTime CreatedOnUTC { get; }
+        public DateTime? ModifiedOnUTC { get; }
 
-        private User(
+        private Employee(
             FirstName firstName,
             LastName lastName,
             Email email,
-            PhoneNumber? phoneNumber,
-            DateOfBirth? dateOfBirth,
+            PhoneNumber phoneNumber,
+            string passwordHash,
+            DateOfBirth dateOfBirth,
             BonusCard bonusCard,
-            string passwordHash
+            EmployeeRole role,
+            WorkPeriod workPeriod,
+            WorkStatus status
         ) : base(Guid.NewGuid())
         {
             Ensure.NotNull(firstName, "The first name is required.", nameof(firstName));
             Ensure.NotNull(lastName, "The last name is required.", nameof(lastName));
             Ensure.NotNull(email, "The email is required.", nameof(email));
+            Ensure.NotNull(phoneNumber, "The phone number is required.", nameof(phoneNumber));
             Ensure.NotNull(bonusCard, "The bonus card is required.", nameof(bonusCard));
             Ensure.NotNull(passwordHash, "The password hash is required.", nameof(passwordHash));
+            Ensure.NotNull(role, "The employee role is required.", nameof(role));
+            Ensure.NotNull(workPeriod, "The work period is required.", nameof(workPeriod));
 
             FirstName = firstName;
             LastName = lastName;
@@ -46,23 +52,30 @@ namespace Restaurant.Domain.Users
             PhoneNumber = phoneNumber;
             DateOfBirth = dateOfBirth;
             BonusCard = bonusCard;
+            Role = role;
+            Status = status;
+            WorkPeriod = workPeriod;
             _passwordHash = passwordHash;
         }
 
-        public static User Create(
+        public static Employee Create(
             FirstName firstName,
             LastName lastName,
             Email email,
             PhoneNumber phoneNumber,
+            string passwordHash,
             DateOfBirth dateOfBirth,
             BonusCard bonusCard,
-            string passwordHash)
+            EmployeeRole role,
+            WorkPeriod workPeriod,
+            WorkStatus workStatus
+        )
         {
-            var user = new User(firstName, lastName, email, phoneNumber, dateOfBirth, bonusCard, passwordHash);
+            var employee = new Employee(firstName, lastName, email, phoneNumber, passwordHash, dateOfBirth, bonusCard, role, workPeriod, workStatus);
 
-            user.AddDomainEvent(new UserCreatedDomainEvent(user));
+            employee.AddDomainEvent(new EmployeeCreatedDomainEvent(employee));
 
-            return user;
+            return employee;
         }
 
         public bool ChangePassword(string newPasswordHash)
@@ -96,16 +109,5 @@ namespace Restaurant.Domain.Users
         }
 
         public void RemoveAddress() => Address = Address.Empty;
-
-        public void AddLikedProduct(LikedProduct likedProduct) => _likedProducts.Add(likedProduct);
-
-        public void RemoveLikedProduct(LikedProduct likedProduct) => _likedProducts.Remove(likedProduct);
-
-        public void AddPaymentMethod(PaymentMethod paymentMethod) => _paymentMethods.Add(paymentMethod);
-
-        public void RemovePaymentMethod(PaymentMethod paymentMethod) => _paymentMethods.Remove(paymentMethod);
-
-        public DateTime CreatedOnUTC { get; }
-        public DateTime? ModifiedOnUTC { get; }
     }
 }

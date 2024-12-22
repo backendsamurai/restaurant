@@ -25,7 +25,7 @@ namespace Restaurant.Domain.Users
                 .Ensure(EmailFormatRegex.Value.IsMatch, UserErrors.Email.InvalidFormat)
                 .Map(e => new Email(e));
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Value;
         }

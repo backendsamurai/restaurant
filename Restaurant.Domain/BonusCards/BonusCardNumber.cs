@@ -36,7 +36,7 @@ namespace Restaurant.Domain.BonusCards
             return new BonusCardNumber(result);
         }
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Value;
         }

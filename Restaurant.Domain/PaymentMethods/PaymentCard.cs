@@ -74,14 +74,7 @@ namespace Restaurant.Domain.PaymentMethods
         }
 
         private static bool CVV2IsValid(string cvv2)
-        {
-            bool result = false;
-
-            foreach (char c in cvv2)
-                result = char.IsDigit(c);
-
-            return result;
-        }
+            => !cvv2.ToArray().Any(c => !char.IsDigit(c));
 
         public override string ToString()
         {
@@ -103,7 +96,7 @@ namespace Restaurant.Domain.PaymentMethods
             return result;
         }
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Number;
             yield return ExpireAt;

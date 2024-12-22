@@ -21,7 +21,7 @@ namespace Restaurant.Domain.Users
                 .Ensure(f => f.Length <= MaxLength, UserErrors.FirstName.LongerThanAllowed)
                 .Map(f => new FirstName(f));
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Value;
         }

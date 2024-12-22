@@ -87,7 +87,7 @@ namespace Restaurant.Domain.Users
                 Region, Street, ZipCode
             );
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Country;
             yield return City;

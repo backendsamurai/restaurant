@@ -138,5 +138,10 @@ namespace Restaurant.Domain.Users
                 );
             }
         }
+        public static class PhoneNumber
+        {
+            public static readonly Error NullOrEmpty = new("User.PhoneNumber.NullOrEmpty", "The phone number cannot be empty");
+            public static readonly Error InvalidFormat = new("User.PhoneNumber.InvalidFormat", "The format of phone number is invalid");
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Restaurant.Domain.Users
                 .Ensure(l => l.Length <= MaxLength, UserErrors.LastName.LongerThanAllowed)
                 .Map(l => new LastName(l));
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Value;
         }

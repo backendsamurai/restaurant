@@ -23,7 +23,7 @@ namespace Restaurant.Domain.Users
                 .Ensure(d => (DateTime.UtcNow.Year - d.Year) <= MaxAge, UserErrors.DateOfBirth.MaxAge)
                 .Map(d => new DateOfBirth(d));
 
-        protected override IEnumerable<object> GetAtomicValues()
+        protected override IEnumerable<object?> GetAtomicValues()
         {
             yield return Value;
         }
