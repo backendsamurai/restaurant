@@ -1,0 +1,134 @@
+.container {
+	height: 100vh;
+	width: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+}
+
+.login-form__section_wrapper {
+	height: 100%;
+	width: 100%;
+	background: #141e30;
+	background: -webkit-linear-gradient(to right, #243b55, #141e30);
+	background: linear-gradient(to right, #243b55, #141e30);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: #fff;
+}
+
+.login-form__section {
+	padding: 100px;
+	border: 2px solid #fff;
+	border-radius: 20px;
+}
+
+.login-form__heading {
+	font-weight: 700;
+	font-size: 2.3em;
+	margin-bottom: 8px;
+}
+
+.login-form__subheading {
+	font-weight: 500;
+	font-size: 1em;
+	font-style: italic;
+	text-decoration: overline;
+}
+
+.login-form__form {
+	margin-top: 20px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	text-align: center;
+}
+
+.login-form__control {
+	margin: 10px 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.login-form__control_label {
+	text-align: left;
+	font-weight: 400;
+	font-size: 1em;
+	margin-bottom: 5px;
+}
+
+.login-form__control_input {
+	padding: 10px;
+	background: transparent;
+	color: #fff;
+	outline: none;
+	font-size: 1em;
+	border: 2px solid #fff;
+	border-radius: 10px;
+}
+
+.login-form__control_input:hover {
+	border-color: #000;
+	transition: all 0.3s ease;
+	cursor: pointer;
+}
+
+.login-form__control_input:focus {
+	cursor: text;
+	border-color: #000;
+	background-color: #fff;
+	color: #000;
+	transition: all 0.3s ease-out;
+}
+
+.login-form__control_input:focus::placeholder {
+	transition: all 0.3s ease;
+	color: #000;
+}
+
+.login-form__control_input::placeholder {
+	transition: all 0.3s ease;
+	color: #fff;
+}
+
+.login-form__control_submit {
+	margin-top: 5px;
+	outline: none;
+	background-color: #fff;
+	border: 2px solid #fff;
+	border-radius: 10px;
+	color: #000;
+	font-size: 1em;
+	padding: 10px 15px;
+	transition: all 0.3s ease;
+}
+
+.login-form__control_submit:hover {
+	border-color: #000;
+	transition: all 0.3s ease;
+	cursor: pointer;
+}
+
+.login-form__control_submit:active {
+	background-color: rgba(255, 255, 0, 1);
+	transition: all 0.3s ease;
+}
+
+/* Responsive media queries */
+@media screen and (max-width: 600px) {
+	.login-form__section {
+		border: none;
+	}
+
+	.login-form__heading {
+		font-size: 2em;
+	}
+
+	.login-form__subheading {
+		text-decoration: none;
+		font-size: 0.8em;
+	}
+}
