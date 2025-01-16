@@ -92,13 +92,6 @@ public sealed class EmployeeController(
 
     [ServiceFilter<ApplyResultAttribute>]
     [HttpPost("authentication")]
-    public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel)
-    {
-        var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
-
-        if (audienceDetectResult.IsError)
-            return Result.Error(audienceDetectResult.DetailedError!);
-
-        return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Employee, loginUserModel);
-    }
+    public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel) =>
+        await _authService.LoginUserAsync(UserRole.Employee, loginUserModel);
 }

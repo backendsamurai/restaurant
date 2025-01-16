@@ -32,7 +32,7 @@ try
     builder.Services.AddControllers().AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
@@ -58,6 +58,12 @@ try
     builder.Services.AddSecurityConfigurations()
         .AddSecurityServices()
         .AddSecurityAuthentication(jwtOptions);
+
+    // CORS
+    builder.Services.AddCors(x =>
+    {
+        x.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+    });
 
     // Database
     builder.Services.AddDatabaseContext(pgConnString);
@@ -91,6 +97,8 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseCors();
 
     app.UseSerilogRequestLogging(x => x.IncludeQueryInRequestPath = true);
 

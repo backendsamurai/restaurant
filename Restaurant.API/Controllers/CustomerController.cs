@@ -61,13 +61,6 @@ public sealed class CustomerController(
 
       [ServiceFilter<ApplyResultAttribute>]
       [HttpPost("authentication")]
-      public async Task<Result<LoginUserResponse>> LoginCustomer([FromBody] LoginUserModel loginUserModel)
-      {
-            var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
-
-            if (audienceDetectResult.IsError)
-                  return Result.Error(audienceDetectResult.DetailedError!);
-
-            return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Customer, loginUserModel);
-      }
+      public async Task<Result<LoginUserResponse>> LoginCustomer([FromBody] LoginUserModel loginUserModel) =>
+             await _authService.LoginUserAsync(UserRole.Customer, loginUserModel);
 }
