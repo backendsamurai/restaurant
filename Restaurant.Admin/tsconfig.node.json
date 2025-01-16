@@ -19,10 +19,12 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedSideEffectImports": true,
+		"baseUrl": "src/",
 		"paths": {
-			"@app/*": ["./src/app/*"],
-			"@ui/*": ["./src/ui/*"],
-			"@assets/*": ["./src/assets/*"]
+			"@/*": ["*"],
+			"@app/*": ["app/*"],
+			"@ui/*": ["ui/*"],
+			"@assets/*": ["assets/*"]
 		}
 	},
 	"include": ["vite.config.ts"]

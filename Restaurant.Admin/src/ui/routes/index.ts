@@ -8,6 +8,6 @@ export const routes = [
 
 // using for navigation bar
 export const links = [
-	{ to: '/', title: 'Home', protected: true },
-	{ to: '/login', title: 'Login', protected: false },
+	{ to: '/', title: 'Home' },
+	{ to: '/login', title: 'Login' },
 ];

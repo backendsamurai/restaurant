@@ -23,6 +23,7 @@
 		"noUncheckedSideEffectImports": true,
 		"baseUrl": "src/",
 		"paths": {
+			"@/*": ["*"],
 			"@app/*": ["app/*"],
 			"@ui/*": ["ui/*"],
 			"@assets/*": ["assets/*"]
