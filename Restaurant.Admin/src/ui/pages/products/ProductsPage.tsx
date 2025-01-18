@@ -1,8 +1,8 @@
 import layouts from '@ui/layouts';
 import { FC } from 'react';
 
-export const HomePage: FC = () => (
+export const ProductsPage: FC = () => (
 	<layouts.MainLayout>
-		<h1>Home page</h1>
+		<h1>Products Page</h1>
 	</layouts.MainLayout>
 );

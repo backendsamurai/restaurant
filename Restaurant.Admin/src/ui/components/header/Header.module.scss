@@ -1,0 +1,96 @@
+@use 'sass:color';
+
+$accent_color: #257180;
+
+.header {
+	height: 70px;
+	width: 100%;
+	padding: 20px;
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: color.adjust($color: $accent_color, $lightness: 60%);
+
+	.logo {
+		a {
+			border: 1px solid $accent_color;
+			padding: 10px 15px;
+			text-decoration: none;
+			color: $accent_color;
+			transition: all 0.3s ease;
+
+			&:hover {
+				transition: all 0.3s ease;
+				background-color: $accent_color;
+				color: #fff;
+			}
+			&.active {
+				background-color: $accent_color;
+				color: #fff;
+			}
+		}
+	}
+
+	.links {
+		height: 100%;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		list-style-type: none;
+		li {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+			a {
+				border: 1px solid $accent_color;
+				padding: 10px 20px;
+				text-decoration: none;
+				color: $accent_color;
+				transition: all 0.2s ease;
+
+				&:hover {
+					background-color: color.adjust(
+						$color: $accent_color,
+						$lightness: 50%
+					);
+					color: color.adjust($color: $accent_color, $blackness: 30%);
+					transition: all 0.2s ease;
+				}
+
+				&.active {
+					background-color: $accent_color;
+					color: #fff;
+				}
+			}
+
+			&:not(:last-child) {
+				a {
+					border-right: none;
+				}
+			}
+		}
+	}
+
+	.profile {
+		padding: 10px;
+		flex-shrink: 0;
+		background-color: $accent_color;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: background-color 0.3s ease;
+
+		&:hover {
+			cursor: pointer;
+			background-color: color.adjust($color: $accent_color, $blackness: 10%);
+			transition: background-color 0.3s ease;
+		}
+
+		h3 {
+			color: #fff;
+		}
+	}
+}

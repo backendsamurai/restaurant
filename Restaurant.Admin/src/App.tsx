@@ -1,13 +1,8 @@
+import { useAuth } from '@ui/hooks';
 import { FC, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../hooks';
 
-interface IProtectedRouteProps {
-	page: FC;
-	roles: '*' | string[];
-}
-
-export const ProtectedRoute: FC<IProtectedRouteProps> = (props) => {
+export const App: FC = () => {
 	const user = useAuth();
 	const navigate = useNavigate();
 
@@ -16,7 +11,9 @@ export const ProtectedRoute: FC<IProtectedRouteProps> = (props) => {
 			navigate('/login');
 			return;
 		}
+
+		navigate('/app');
 	}, [user]);
 
-	return user !== null ? <props.page /> : null;
+	return null;
 };
