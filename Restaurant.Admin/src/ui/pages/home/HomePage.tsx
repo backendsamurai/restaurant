@@ -1,28 +1,17 @@
-import { IUser } from '@app/models/user';
+import { IAuthenticatedPageProps } from '@/ui/components/ProtectedRoute';
 import layouts from '@ui/layouts';
-import { FC, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { FC } from 'react';
 
-export const HomePage: FC = () => {
-	const [user, setUser] = useState<IUser>();
+interface IHomePageProps extends IAuthenticatedPageProps {}
 
-	const navigate = useNavigate();
-
-	useEffect(() => {
-		const localUser = localStorage.getItem('user');
-
-		if (localUser === null || localUser === '') {
-			navigate('/login');
-			return;
-		}
-
-		setUser(JSON.parse(localUser));
-	}, []);
-
-	return (
-		<layouts.MainLayout>
-			<h1>Home page</h1>
-			<h3>Welcome, {user?.userName}</h3>
-		</layouts.MainLayout>
-	);
-};
+export const HomePage: FC<IHomePageProps> = ({ user, role }) => (
+	<layouts.MainLayout>
+		<h1>Home Page</h1>
+		<h2>
+			<i>{user?.userName}</i>
+			<br />
+			<u>{user?.userEmail}</u>
+		</h2>
+		<span>Role: {role}</span>
+	</layouts.MainLayout>
+);

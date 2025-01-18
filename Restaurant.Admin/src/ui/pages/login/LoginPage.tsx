@@ -1,7 +1,8 @@
 import { httpClient } from '@/config';
-import { IUser } from '@app/models/user';
+import { login } from '@app/store/reducers/auth';
 import axios from 'axios';
 import { FC, FormEvent, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { toast, ToastContainer } from 'react-toastify';
 import styles from './LoginPage.module.scss';
@@ -10,7 +11,7 @@ export const LoginPage: FC = () => {
 	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
 	const [status, setStatus] = useState<string>('');
-
+	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
 	const handleForm = async (event: FormEvent<HTMLFormElement>) => {
@@ -25,7 +26,7 @@ export const LoginPage: FC = () => {
 
 			if (response.status == 200) {
 				setStatus('fulfilled');
-				saveUserToLocalStorage(response.data.data as IUser);
+				dispatch(login(response.data.data));
 				navigate('/');
 			}
 		} catch (e) {
@@ -43,10 +44,6 @@ export const LoginPage: FC = () => {
 				position: 'top-center',
 			});
 		}
-	};
-
-	const saveUserToLocalStorage = (user: IUser) => {
-		localStorage.setItem('user', JSON.stringify(user));
 	};
 
 	return (
