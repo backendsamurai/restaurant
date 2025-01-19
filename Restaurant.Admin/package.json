@@ -9,7 +9,10 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@iconscout/react-unicons-solid": "^1.1.2",
+		"@iconscout/unicons": "^4.2.0",
 		"@reduxjs/toolkit": "^2.5.0",
+		"@remixicon/react": "^4.6.0",
 		"axios": "^1.7.9",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",

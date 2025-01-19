@@ -21,6 +21,8 @@ $border_radius: 5px;
 			color: $accent_color;
 			transition: all 0.3s ease;
 			border-radius: $border_radius;
+			display: flex;
+			gap: 5px;
 
 			&:hover {
 				transition: all 0.3s ease;
@@ -114,4 +116,11 @@ $border_radius: 5px;
 			color: #fff;
 		}
 	}
+}
+
+.linkWithIcon {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 5px;
 }

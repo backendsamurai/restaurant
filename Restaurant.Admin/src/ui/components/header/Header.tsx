@@ -1,4 +1,5 @@
 import { useAppSelector } from '@/ui/hooks';
+import { RiSettings2Line } from '@remixicon/react';
 import { links } from '@ui/routes';
 import { FC, useMemo } from 'react';
 import { NavLink } from 'react-router';
@@ -40,6 +41,7 @@ export const Header: FC = () => {
 					to={'/app'}
 					className={({ isActive }) => (isActive ? styles.active : '')}
 				>
+					<RiSettings2Line size={19} />
 					Restaurant.Admin
 				</NavLink>
 			</section>
@@ -48,9 +50,18 @@ export const Header: FC = () => {
 				{navigationLinks.map((l, i) => (
 					<li key={i}>
 						<NavLink
-							className={({ isActive }) => (isActive ? styles.active : '')}
+							className={({ isActive }) => {
+								let classNames = [];
+
+								if (isActive) classNames.push(styles.active);
+
+								if (l.icon) classNames.push(styles.linkWithIcon);
+
+								return classNames.join(' ');
+							}}
 							to={l.path}
 						>
+							{l.icon && <l.icon size={19} />}
 							{l.title}
 						</NavLink>
 					</li>

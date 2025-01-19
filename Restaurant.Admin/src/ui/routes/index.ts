@@ -1,9 +1,18 @@
+import {
+	RemixiconComponentType,
+	RiBowlLine,
+	RiGroup2Fill,
+	RiMapPin2Line,
+	RiMoneyDollarCircleLine,
+	RiServiceBellLine,
+} from '@remixicon/react';
 import pages from '@ui/pages';
 import commonPages from '@ui/pages/common';
 import { FC } from 'react';
 
 export interface IRoute {
 	title: string;
+	icon?: RemixiconComponentType | null;
 	path: string;
 	page: FC;
 	roles: '*' | string[];
@@ -30,6 +39,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Employees',
+		icon: RiGroup2Fill,
 		path: '/employees',
 		page: pages.EmployeesPage,
 		roles: ['manager'],
@@ -38,6 +48,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Products',
+		icon: RiBowlLine,
 		path: '/products',
 		page: pages.ProductsPage,
 		roles: '*',
@@ -46,6 +57,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Orders',
+		icon: RiServiceBellLine,
 		path: '/orders',
 		page: pages.OrdersPage,
 		roles: '*',
@@ -54,6 +66,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Desks',
+		icon: RiMapPin2Line,
 		path: '/desks',
 		page: pages.DesksPage,
 		roles: '*',
@@ -62,6 +75,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Payments',
+		icon: RiMoneyDollarCircleLine,
 		path: '/payments',
 		page: pages.PaymentsPage,
 		roles: ['manager'],
@@ -100,6 +114,7 @@ export const links = routes
 	.map(
 		(r): Omit<IRoute, 'page'> => ({
 			title: r.title,
+			icon: r.icon,
 			path: r.path,
 			roles: r.roles,
 			hidden: r.hidden,
