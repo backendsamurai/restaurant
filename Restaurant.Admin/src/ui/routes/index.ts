@@ -1,7 +1,7 @@
 import {
 	RemixiconComponentType,
 	RiBowlLine,
-	RiGroup2Fill,
+	RiGroupLine,
 	RiMapPin2Line,
 	RiMoneyDollarCircleLine,
 	RiServiceBellLine,
@@ -39,7 +39,7 @@ export const routes: IRoute[] = [
 	},
 	{
 		title: 'Employees',
-		icon: RiGroup2Fill,
+		icon: RiGroupLine,
 		path: '/employees',
 		page: pages.EmployeesPage,
 		roles: ['manager'],
