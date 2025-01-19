@@ -1,22 +1,34 @@
-import { FC, useEffect } from 'react';
+import { useAuth } from '@ui/hooks';
+import { FC, ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../hooks';
 
 interface IProtectedRouteProps {
-	page: FC;
+	page: ReactNode;
 	roles: '*' | string[];
 }
 
-export const ProtectedRoute: FC<IProtectedRouteProps> = (props) => {
+export const ProtectedRoute: FC<IProtectedRouteProps> = ({ page, roles }) => {
 	const user = useAuth();
 	const navigate = useNavigate();
+	const [allowed, setAllowed] = useState<boolean>();
 
 	useEffect(() => {
 		if (user === null) {
+			setAllowed(false);
 			navigate('/login');
 			return;
 		}
-	}, [user]);
 
-	return user !== null ? <props.page /> : null;
+		if (user && roles !== '*' && roles.length > 0) {
+			if (!roles.includes(user?.employeeRole ?? '')) {
+				setAllowed(false);
+				navigate('/forbidden');
+				return;
+			}
+		}
+
+		setAllowed(true);
+	}, [user, roles]);
+
+	return allowed ? <>{page}</> : null;
 };

@@ -5,6 +5,7 @@ import { LoginPage } from './login/LoginPage';
 import { OrdersPage } from './orders/OrdersPage';
 import { PaymentsPage } from './payments/PaymentsPage';
 import { ProductsPage } from './products/ProductsPage';
+import { ProfilePage } from './profile/ProfilePage';
 
 export default {
 	HomePage,
@@ -14,4 +15,5 @@ export default {
 	OrdersPage,
 	PaymentsPage,
 	ProductsPage,
+	ProfilePage,
 };

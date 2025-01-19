@@ -1,4 +1,5 @@
 import pages from '@ui/pages';
+import commonPages from '@ui/pages/common';
 import { FC } from 'react';
 
 export interface IRoute {
@@ -66,6 +67,30 @@ export const routes: IRoute[] = [
 		roles: ['manager'],
 		hidden: false,
 		protected: true,
+	},
+	{
+		title: 'Profile',
+		path: '/profile',
+		page: pages.ProfilePage,
+		roles: '*',
+		hidden: true,
+		protected: true,
+	},
+	{
+		title: '404 Not Found',
+		path: '*',
+		page: commonPages.NotFoundPage,
+		roles: [],
+		hidden: true,
+		protected: false,
+	},
+	{
+		title: 'Forbidden Access',
+		path: '/forbidden',
+		page: commonPages.ForbiddenPage,
+		roles: '*',
+		hidden: true,
+		protected: false,
 	},
 ];
 

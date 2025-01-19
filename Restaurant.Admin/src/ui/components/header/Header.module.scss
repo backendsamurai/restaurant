@@ -1,6 +1,7 @@
 @use 'sass:color';
 
 $accent_color: #257180;
+$border_radius: 5px;
 
 .header {
 	height: 70px;
@@ -19,6 +20,7 @@ $accent_color: #257180;
 			text-decoration: none;
 			color: $accent_color;
 			transition: all 0.3s ease;
+			border-radius: $border_radius;
 
 			&:hover {
 				transition: all 0.3s ease;
@@ -71,25 +73,44 @@ $accent_color: #257180;
 					border-right: none;
 				}
 			}
+
+			&:first-child {
+				a {
+					border-top-left-radius: $border_radius;
+					border-bottom-left-radius: $border_radius;
+				}
+			}
+
+			&:last-child {
+				a {
+					border-top-right-radius: $border_radius;
+					border-bottom-right-radius: $border_radius;
+				}
+			}
 		}
 	}
 
-	.profile {
-		padding: 10px;
+	.profileAvatar {
+		padding: 15px;
 		flex-shrink: 0;
-		background-color: $accent_color;
+		border: 1px solid $accent_color;
+		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: background-color 0.3s ease;
+		transition: all 0.2s ease;
+		text-decoration: none;
+		color: $accent_color;
+		font-weight: bold;
 
 		&:hover {
-			cursor: pointer;
-			background-color: color.adjust($color: $accent_color, $blackness: 10%);
-			transition: background-color 0.3s ease;
+			background-color: color.adjust($color: $accent_color, $lightness: 50%);
+			color: color.adjust($color: $accent_color, $blackness: 30%);
+			transition: all 0.2s ease;
 		}
 
-		h3 {
+		&.active {
+			background-color: $accent_color;
 			color: #fff;
 		}
 	}

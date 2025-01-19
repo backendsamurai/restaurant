@@ -8,10 +8,11 @@ export const Header: FC = () => {
 	const { user } = useAppSelector((state) => state.auth);
 
 	const navigationLinks = useMemo(() => {
-		return links.filter((l) => {
-			if (l.protected && l.roles == '*') return l;
+		return links.filter((link) => {
+			if (link.protected && link.roles == '*') return link;
 
-			if (l.protected && l.roles.includes(user?.employeeRole ?? '')) return l;
+			if (link.protected && link.roles.includes(user?.employeeRole ?? ''))
+				return link;
 
 			return null;
 		});
@@ -56,9 +57,16 @@ export const Header: FC = () => {
 				))}
 			</ul>
 
-			<section className={styles.profile}>
-				<h3>{initialsOfUserName}</h3>
-			</section>
+			<NavLink
+				to='/profile'
+				className={({ isActive }) =>
+					isActive
+						? `${styles.profileAvatar} ${styles.active}`
+						: styles.profileAvatar
+				}
+			>
+				{initialsOfUserName}
+			</NavLink>
 		</nav>
 	);
 };

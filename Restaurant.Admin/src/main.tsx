@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')!).render(
 							path={r.path}
 							element={
 								r.protected ? (
-									<ProtectedRoute page={r.page} roles={r.roles} />
+									<ProtectedRoute page={<r.page />} roles={r.roles} />
 								) : (
 									<r.page />
 								)
