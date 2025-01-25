@@ -1,19 +1,44 @@
-import { useAuth } from '@ui/hooks';
+import { useAppDispatch, useAppSelector } from '_hooks';
+import { ProtectedRoute, routes } from '_routes';
+import { initAction } from '_store/auth';
 import { FC, useEffect } from 'react';
-import { useNavigate } from 'react-router';
+import { BrowserRouter, Route, Routes } from 'react-router';
 
-export const App: FC = () => {
-	const user = useAuth();
-	const navigate = useNavigate();
+const App: FC = () => {
+	const { user, authenticated } = useAppSelector((state) => state.auth);
+	const dispatch = useAppDispatch();
 
 	useEffect(() => {
-		if (user === null) {
-			navigate('/login');
-			return;
+		if (!authenticated) {
+			dispatch(initAction());
 		}
+	}, [authenticated, dispatch]);
 
-		navigate('/app');
-	}, [user]);
-
-	return null;
+	return (
+		<BrowserRouter>
+			<Routes>
+				{routes.map((r, i) =>
+					r.protected ? (
+						<Route
+							path={r.path}
+							key={i}
+							element={
+								<ProtectedRoute
+									authenticated={authenticated}
+									user={user}
+									roles={r.roles}
+								>
+									<r.page />
+								</ProtectedRoute>
+							}
+						/>
+					) : (
+						<Route path={r.path} key={i} element={<r.page />} />
+					)
+				)}
+			</Routes>
+		</BrowserRouter>
+	);
 };
+
+export default App;
