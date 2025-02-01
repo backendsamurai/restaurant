@@ -10,11 +10,10 @@ interface IDesk {
 
 export const Desks: FC = () => {
 	const [desks, setDesks] = useState<IDesk[]>([]);
-	const [loading, setLoading] = useState<boolean>();
+	const [loading, setLoading] = useState<boolean>(true);
 
 	useEffect(() => {
 		const fetchDesks = async () => {
-			setLoading(true);
 			try {
 				const response = await httpClient.get('/desks');
 

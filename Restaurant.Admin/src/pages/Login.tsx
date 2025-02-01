@@ -21,7 +21,6 @@ export const Login: FC = () => {
 
 	const {
 		register,
-		reset,
 		handleSubmit,
 		formState: { errors },
 	} = useForm<ILoginForm>({ mode: 'all' });
@@ -36,10 +35,7 @@ export const Login: FC = () => {
 			successMessage: 'You successfully logged in!',
 			errorMessage: error,
 			closeAfterMs: 500,
-			onClose: () => {
-				reset();
-				navigate('/');
-			},
+			onClose: () => navigate('/'),
 		});
 	}, [status]);
 
@@ -97,7 +93,7 @@ export const Login: FC = () => {
 						colorPalette={'teal'}
 						variant={'surface'}
 						disabled={
-							status === 'pending' || (!!errors.email && !!errors.password)
+							status === 'pending' || !!errors.email || !!errors.password
 						}
 						loading={status === 'pending'}
 					>
