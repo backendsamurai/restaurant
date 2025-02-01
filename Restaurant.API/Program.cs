@@ -29,12 +29,14 @@ try
     var redisConnString = builder.Configuration.GetConnectionString("RedisCache");
     var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
 
-    builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    });
+    builder.Services
+        .AddControllers(c => c.Filters.Add<ApplyResultAttribute>())
+        .AddJsonOptions(c =>
+            {
+                c.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                c.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                c.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            });
 
     // Logging with Serilog
     builder.Logging.ClearProviders();
@@ -83,9 +85,6 @@ try
 
     // Custom Types
     builder.Services.AddCustomTypes();
-
-    // Custom Attributes
-    builder.Services.AddCustomAttributes();
 
     // AWS S3 storage with Minio Server
     builder.Services.AddStorageConfiguration()
