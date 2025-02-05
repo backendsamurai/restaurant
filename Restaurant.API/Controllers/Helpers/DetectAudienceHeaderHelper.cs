@@ -9,20 +9,13 @@ public static class DetectAudienceHeaderHelper
     {
         string? audience = headers.FirstOrDefault(h => h.Key == "Audience").Value;
 
-        if (string.IsNullOrEmpty(audience))
-            return Result.Error(
-                code: "0015",
-                type: "missing_audience_header",
-                message: "Missing Audience Header",
-                detail: "Audience header not set or value is empty"
-            );
-
-        if (!jwtOptions.Audiences.Contains(audience))
-            return Result.Error(
-                code: "0015",
-                type: "incorrect_audience_header",
-                message: "Incorrect Audience Header",
-                detail: "Incorrect audience value in header"
+        if (string.IsNullOrEmpty(audience) || !jwtOptions.Audiences.Contains(audience))
+            return DetailedError.Create(b => b
+                .WithStatus(ResultStatus.Unauthorized)
+                .WithSeverity(ErrorSeverity.Warning)
+                .WithType("INVALID_AUDIENCE")
+                .WithTitle("Unauthorized")
+                .WithMessage("Check all provided data and try again")
             );
 
         return Result.Success(audience);

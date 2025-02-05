@@ -16,21 +16,21 @@ public sealed class PaymentService(IRepository<Payment> paymentRepository, IVali
         await _paymentRepository.SelectAllAsync();
 
     public async Task<Result<Payment>> GetPaymentByIdAsync(Guid paymentId) =>
-        Result.Success(await _paymentRepository.SelectByIdAsync(paymentId)) ?? Result.NotFound(null!);
+        Result.Success(await _paymentRepository.SelectByIdAsync(paymentId)) ?? DetailedError.NotFound("Payment not found", "Provide correct payment ID");
 
     public async Task<Result<Payment>> CreatePaymentAsync(CreatePaymentModel createPaymentModel)
     {
         var validationResult = await _validator.ValidateAsync(createPaymentModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(null!);
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var payment = await _paymentRepository.AddAsync(
             new Payment { Bill = createPaymentModel.Bill, Tip = createPaymentModel.Tip }
         );
 
         if (payment is null)
-            return Result.Error(null!);
+            return DetailedError.CreatingProblem("Cannot create payment");
 
         return Result.Created(payment);
     }

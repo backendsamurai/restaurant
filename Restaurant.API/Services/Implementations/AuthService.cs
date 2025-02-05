@@ -30,20 +30,14 @@ public sealed class AuthService(
     private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
     private readonly ILogger<AuthService> _logger = logger;
 
-    public async Task<Result<LoginUserResponse>> LoginUserAsync(string audience, UserRole userRole, LoginUserModel loginUserModel)
+    public async Task<Result<LoginUserResponse>> LoginUserAsync(UserRole userRole, LoginUserModel loginUserModel)
     {
         var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
 
         if (!validationResult.IsValid)
         {
-            _logger.LogWarning("Validation error\n{@ErrorMsg}", validationResult.Errors[0].ErrorMessage);
-
-            return Result.Invalid(
-                code: "ATZ-000-001",
-                type: "invalid_model",
-                message: "One of field are not valid",
-                detail: "Check all fields and try again"
-            );
+            _logger.LogWarning("Validation error\n{@ErrorMsg}", validationResult.Errors.First().ErrorMessage);
+            return DetailedError.Invalid("One of field are not valid", validationResult.Errors.First().ErrorMessage);
         }
 
         var info = userRole switch
@@ -55,24 +49,20 @@ public sealed class AuthService(
 
         if (info is null)
         {
-            string msg = userRole == UserRole.Customer ? "Customer not found" : "Employee not found";
-            _logger.LogWarning("{@msg}", msg);
-
-            return Result.NotFound(
-                code: "ATZ-000-002",
-                type: "entity_not_found",
-                message: msg,
-                detail: "Please provide correct id"
-            );
+            var notFoundError = DetailedError.NotFound($"{userRole.Humanize(LetterCasing.Title)} with provided email not found");
+            _logger.LogWarning("{@Err}", notFoundError);
+            return notFoundError;
         }
 
         if (!_passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
-            return Result.Error(
-                code: "ATZ-100-001",
-                type: "auth_wrong_password",
-                message: "Wrong password",
-                detail: "Please check your password is correct"
+            return DetailedError.Create(b => b
+                .WithStatus(ResultStatus.Error)
+                .WithSeverity(ErrorSeverity.Error)
+                .WithType("AUTH_WRONG_PASSWORD")
+                .WithTitle("Wrong password")
+                .WithMessage("Check the password is correct and try again")
             );
+
 
         List<SystemClaims.Claim> claims = [
             new (ClaimTypes.Name,info.User.Name),
@@ -84,10 +74,10 @@ public sealed class AuthService(
         if (userRole == UserRole.Employee && !string.IsNullOrEmpty(info.EmployeeRole))
             claims.Add(new(ClaimTypes.EmployeeRole, info.EmployeeRole));
 
-        var tokenResult = _jwtService.GenerateToken(audience, claims);
+        var tokenResult = _jwtService.GenerateToken(claims);
 
         if (tokenResult.IsError)
-            return Result.Error(tokenResult.DetailedError!);
+            return tokenResult.DetailedError!;
 
         return Result.Success(
             Tuple.Create(info.User, info.Id, tokenResult.Value, info.EmployeeRole)

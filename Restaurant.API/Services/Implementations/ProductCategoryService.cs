@@ -30,13 +30,7 @@ public sealed class ProductCategoryService(
         var category = await _cache.GetOrSetAsync(pc => pc.Id == id,
             async () => await _productCategoryRepository.SelectByIdAsync(id));
 
-        return category is null
-            ? Result.NotFound(
-                code: "PRC-000-001",
-                type: "entity_not_found",
-                message: "Category not found",
-                detail: "Please provide correct category id"
-            ) : Result.Success(category);
+        return category is null ? DetailedError.NotFound("Please provide correct category id") : Result.Success(category);
     }
 
     public async Task<Result<List<ProductCategory>>> GetProductCategoriesByName(string name)
@@ -54,22 +48,12 @@ public sealed class ProductCategoryService(
         var validationResult = await _createProductValidator.ValidateAsync(createProductCategoryModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(
-                code: "RPC-000-002",
-                type: "invalid_model",
-                message: "One of provided field are invalid",
-                detail: "Check all fields is valid and try again"
-            );
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var category = await _productCategoryRepository.FirstOrDefaultAsync(pc => pc.Name == createProductCategoryModel.Name!);
 
         if (category is not null)
-            return Result.Conflict(
-                code: "RPC-100-001",
-                type: "conflict_entities",
-                message: "Category with this name already exists",
-                detail: "Change provided name to another and try again"
-            );
+            return DetailedError.Conflict("Category with this name already exists", "Category with this name already exists");
 
         var newCategory = await _productCategoryRepository
             .AddAsync(new ProductCategory { Name = createProductCategoryModel.Name });
@@ -80,12 +64,7 @@ public sealed class ProductCategoryService(
             return Result.Created(newCategory);
         }
 
-        return Result.Error(
-            code: "RPC-100-002",
-            type: "error_while_creating_entity",
-            message: "Error while creating category",
-            detail: "Try again later"
-        );
+        return DetailedError.CreatingProblem("Error while creating category", "Try again later");
     }
 
     public async Task<Result<ProductCategory>> UpdateProductCategory(Guid id, UpdateProductCategoryModel updateProductCategoryModel)
@@ -93,22 +72,12 @@ public sealed class ProductCategoryService(
         var validationResult = await _updateProductValidator.ValidateAsync(updateProductCategoryModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(
-                code: "RPC-000-002",
-                type: "invalid_model",
-                message: "One of provided field are invalid",
-                detail: "Check all fields is valid and try again"
-            );
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var category = await _productCategoryRepository.SelectByIdAsync(id);
 
         if (category is null)
-            return Result.NotFound(
-                 code: "PRC-000-001",
-                 type: "entity_not_found",
-                 message: "Category not found",
-                 detail: "Please provide correct category id"
-             );
+            return DetailedError.NotFound("Please provide correct category id");
 
         if (category.Name == updateProductCategoryModel.Name)
             return Result.NoContent();
@@ -121,12 +90,7 @@ public sealed class ProductCategoryService(
             return Result.Success(category);
         }
 
-        return Result.Error(
-            code: "RPC-100-003",
-            type: "error_while_updating_entity",
-            message: "Error while updating category",
-            detail: "Try again later"
-        );
+        return DetailedError.UpdatingProblem("Error while updating category", "Try again later");
     }
 
     public async Task<Result> RemoveProductCategory(Guid id)
@@ -134,12 +98,7 @@ public sealed class ProductCategoryService(
         var category = await _productCategoryRepository.SelectByIdAsync(id);
 
         if (category is null)
-            return Result.NotFound(
-                 code: "PRC-000-001",
-                 type: "entity_not_found",
-                 message: "Category not found",
-                 detail: "Please provide correct category id"
-             );
+            return DetailedError.NotFound("Please provide correct category id");
 
         if (await _productCategoryRepository.RemoveAsync(category))
         {
@@ -147,11 +106,6 @@ public sealed class ProductCategoryService(
             return Result.NoContent();
         }
 
-        return Result.Error(
-            code: "RPC-100-004",
-            type: "error_while_removing_entity",
-            message: "Error while removing category",
-            detail: "Try again later"
-        );
+        return DetailedError.RemoveProblem("Error while removing category", "Try again later");
     }
 }

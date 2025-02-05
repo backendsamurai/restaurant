@@ -14,7 +14,7 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtServi
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
     private readonly ILogger<JwtService> _logger = logger;
 
-    public Result<string> GenerateToken(string audience, List<Claim> claims)
+    public Result<string> GenerateToken(List<Claim> claims)
     {
         _logger.LogInformation("Generating JWT token");
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SecurityKey));
@@ -22,7 +22,6 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtServi
 
         var tokenDescription = new JwtSecurityToken(
             issuer: _jwtOptions.Issuer,
-            audience: audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(_jwtOptions.ExpireInMinutes),
             signingCredentials: credentials
@@ -39,16 +38,17 @@ public sealed class JwtService(IOptions<JwtOptions> jwtOptions, ILogger<JwtServi
         }
         catch
         {
-            var err = new DetailedError(
-                code: "0010",
-                type: "token_generation_error",
-                message: "Cannot generate authentication token",
-                detail: "Please check provided credentials and try again later"
+            var err = DetailedError.Create(b => b
+                .WithStatus(ResultStatus.Error)
+                .WithSeverity(ErrorSeverity.Error)
+                .WithType("TOKEN_GENERATION_PROBLEM")
+                .WithTitle("Cannot generate authentication token")
+                .WithMessage("Please check provided credentials and try again later")
             );
 
             _logger.LogError("Error while generating JWT token\nErr:{@Error}", err);
 
-            return Result.Error(err);
+            return err;
         }
     }
 }

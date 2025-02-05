@@ -29,12 +29,14 @@ try
     var redisConnString = builder.Configuration.GetConnectionString("RedisCache");
     var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
 
-    builder.Services.AddControllers().AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-    });
+    builder.Services
+        .AddControllers(c => c.Filters.Add<ApplyResultAttribute>())
+        .AddJsonOptions(c =>
+            {
+                c.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                c.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                c.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            });
 
     // Logging with Serilog
     builder.Logging.ClearProviders();
@@ -59,6 +61,12 @@ try
         .AddSecurityServices()
         .AddSecurityAuthentication(jwtOptions);
 
+    // CORS
+    builder.Services.AddCors(x =>
+    {
+        x.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+    });
+
     // Database
     builder.Services.AddDatabaseContext(pgConnString);
 
@@ -78,9 +86,6 @@ try
     // Custom Types
     builder.Services.AddCustomTypes();
 
-    // Custom Attributes
-    builder.Services.AddCustomAttributes();
-
     // AWS S3 storage with Minio Server
     builder.Services.AddStorageConfiguration()
         .AddS3Storage()
@@ -91,6 +96,8 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseCors();
 
     app.UseSerilogRequestLogging(x => x.IncludeQueryInRequestPath = true);
 

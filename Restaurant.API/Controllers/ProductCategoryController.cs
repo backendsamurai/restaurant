@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.ProductCategory;
@@ -16,7 +15,6 @@ public sealed class ProductCategoryController(
 {
     private readonly IProductCategoryService _productCategoryService = productCategoryService;
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<ProductCategory>>> GetAllCategories([FromQuery(Name = "name")] string? name)
     {
@@ -25,7 +23,7 @@ public sealed class ProductCategoryController(
             var validationResult = QueryValidationHelper.Validate(name);
 
             if (validationResult.IsError)
-                return Result.Invalid(validationResult.DetailedError!);
+                return validationResult.DetailedError!;
 
             return await _productCategoryService.GetProductCategoriesByName(name);
         }
@@ -33,24 +31,20 @@ public sealed class ProductCategoryController(
         return await _productCategoryService.GetProductCategories();
     }
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<ProductCategory>> GetCategoryById([FromRoute(Name = "id")] Guid id)
         => await _productCategoryService.GetProductCategoryById(id);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<ProductCategory>> CreateCategory([FromBody] CreateProductCategoryModel createProductCategoryModel)
         => await _productCategoryService.CreateProductCategory(createProductCategoryModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{id:guid}")]
     public async Task<Result<ProductCategory>> UpdateCategory(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateProductCategoryModel updateProductCategoryModel
     ) => await _productCategoryService.UpdateProductCategory(id, updateProductCategoryModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveCategory([FromRoute(Name = "id")] Guid id)
         => await _productCategoryService.RemoveProductCategory(id);

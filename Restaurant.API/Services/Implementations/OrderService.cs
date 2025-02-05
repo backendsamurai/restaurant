@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +34,7 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
     }
 
     public async Task<Result<OrderResponse>> GetOrderByIdAsync(Guid orderId) =>
-        Result.Success(await _orderRepository.WhereFirstAsync<OrderResponse>(o => o.Id == orderId)) ?? Result.NotFound(null!);
+        Result.Success(await _orderRepository.WhereFirstAsync<OrderResponse>(o => o.Id == orderId)) ?? DetailedError.NotFound("Provide correct ID");
 
     public async Task<Result<List<OrderResponse>>> GetOrdersByCustomerAsync(Guid customerId) =>
         await _orderRepository.WhereAsync<OrderResponse>(o => o.Customer.Id == customerId);
@@ -51,27 +50,27 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
         var validationResult = await _validator.ValidateAsync(createOrderModel);
 
         if (!validationResult.IsValid)
-            return Result.Invalid(null!);
+            return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
         var customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.Id == createOrderModel.CustomerId);
 
         if (customer is null)
-            return Result.NotFound(null!);
+            return DetailedError.NotFound("Customer not found", "Provide correct customer ID");
 
         var waiterRole = await _dbContext.EmployeeRoles.FirstOrDefaultAsync(er => er.Name == "waiter");
 
         if (waiterRole is null)
-            return Result.Error(null!);
+            return DetailedError.NotFound("Waiter Role not found", "Provide correct waiter role ID");
 
         var waiter = await _dbContext.Employees.FirstOrDefaultAsync(e => e.Id == createOrderModel.WaiterId && e.Role.Id == waiterRole.Id);
 
         if (waiter is null)
-            return Result.Error(null!);
+            return DetailedError.NotFound("Waiter not found", "Provide correct employee ID");
 
         var desk = await _dbContext.Desks.FirstOrDefaultAsync(d => d.Id == createOrderModel.DeskId);
 
         if (desk is null)
-            return Result.Error(null!);
+            return DetailedError.NotFound("Desk not found", "Provide correct desk ID");
 
         List<OrderLineItem> orderItems = [];
 
@@ -93,7 +92,7 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
         var newOrder = await _orderRepository.AddAsync(order);
 
         if (newOrder is null)
-            return Result.Error(null!);
+            return DetailedError.CreatingProblem("Cannot create new order");
 
         return Result.Created(newOrder.Adapt<OrderResponse>());
     }
@@ -103,12 +102,12 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
         var order = await _orderRepository.FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order is null)
-            return Result.NotFound(null!);
+            return DetailedError.NotFound("Order not found", "Provide correct order ID");
 
         var payment = await _dbContext.Payments.FirstOrDefaultAsync(p => p.Id == paymentId);
 
         if (payment is null)
-            return Result.Invalid(null!);
+            return DetailedError.NotFound("Payment not found", "Provide correct payment ID");
 
         order.Payment = payment;
 
@@ -117,7 +116,7 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
             return order.Adapt<OrderResponse>();
         }
 
-        return Result.Error(null!);
+        return DetailedError.UpdatingProblem("Cannot add payment to order");
     }
 
     public async Task<Result> CloseOrderAsync(Guid orderId)
@@ -125,7 +124,7 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
         var order = await _orderRepository.SelectByIdAsync(orderId);
 
         if (order is null)
-            return Result.NotFound(null!);
+            return DetailedError.NotFound("Order not found", "Provide correct order ID");
 
         if (order.Status == OrderStatus.Pending)
         {
@@ -136,6 +135,12 @@ public sealed class OrderService(IRepository<Order> orderRepository, RestaurantD
             return Result.Success();
         }
 
-        return Result.Error(null!);
+        return DetailedError.Create(b => b
+            .WithStatus(ResultStatus.Error)
+            .WithSeverity(ErrorSeverity.Warning)
+            .WithType("CLOSE_ORDER_PROBLEM")
+            .WithTitle("Cannot close order")
+            .WithMessage("Unexpected error")
+        );
     }
 }

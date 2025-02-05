@@ -23,6 +23,9 @@ public static class DependencyInjection
 
         try
         {
+            // Reset Cache (problem with sync new data after redis shutdown)
+            provider.Connection.Execute("FLUSHALL");
+
             provider.Connection.CreateIndex(typeof(EmployeeRoleCacheModel));
             provider.Connection.CreateIndex(typeof(EmployeeCacheModel));
             provider.Connection.CreateIndex(typeof(CustomerCacheModel));
