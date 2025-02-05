@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.Employee;
@@ -29,7 +28,6 @@ public sealed class EmployeeController(
     private readonly IRepository<Employee> _employeeRepository = employeeRepository;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet]
     public async Task<Result<List<EmployeeResponse>>> GetEmployees(
         [FromQuery(Name = "email")] string? email, [FromQuery(Name = "role")] string? role)
@@ -63,42 +61,29 @@ public sealed class EmployeeController(
         return await _employeeService.GetAllEmployeesAsync();
     }
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{id:guid}")]
     public async Task<Result<EmployeeResponse>> GetEmployeeById([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.GetEmployeeByIdAsync(id);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost]
     public async Task<Result<EmployeeResponse>> CreateEmployee([FromBody] CreateEmployeeModel createEmployeeModel) =>
         await _employeeService.CreateEmployeeAsync(createEmployeeModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeResponse>> UpdateEmployee(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateEmployeeModel updateEmployeeModel
     ) => await _employeeService.UpdateEmployeeAsync(id, updateEmployeeModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveEmployee([FromRoute(Name = "id")] Guid id) =>
         await _employeeService.RemoveEmployeeAsync(id);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpGet("{employeeId:guid}/orders")]
     public async Task<Result<List<OrderResponse>>> GetOrdersByEmployee([FromRoute(Name = "employeeId")] Guid employeeId) =>
         await _orderService.GetOrdersByEmployeeAsync(employeeId);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost("authentication")]
-    public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel)
-    {
-        var audienceDetectResult = DetectAudienceHeaderHelper.Detect(Request.Headers, _jwtOptions);
-
-        if (audienceDetectResult.IsError)
-            return audienceDetectResult.DetailedError!;
-
-        return await _authService.LoginUserAsync(audienceDetectResult.Value!, UserRole.Employee, loginUserModel);
-    }
+    public async Task<Result<LoginUserResponse>> LoginEmployee([FromBody] LoginUserModel loginUserModel) =>
+        await _authService.LoginUserAsync(UserRole.Employee, loginUserModel);
 }

@@ -8,6 +8,7 @@ using Restaurant.API.Models.Desk;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using StackExchange.Redis;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -15,13 +16,15 @@ public sealed class DeskService(
     IRepository<Desk> repository,
     IValidator<CreateDeskModel> createDeskValidator,
     IValidator<UpdateDeskModel> updateDeskValidator,
-    IRedisCollection<DeskCacheModel> cache
+    IRedisCollection<DeskCacheModel> cache,
+    ILogger<DeskService> logger
 ) : IDeskService
 {
     private readonly IRepository<Desk> _repository = repository;
     private readonly IValidator<CreateDeskModel> _createDeskValidator = createDeskValidator;
     private readonly IValidator<UpdateDeskModel> _updateDeskValidator = updateDeskValidator;
     private readonly IRedisCollection<DeskCacheModel> _cache = cache;
+    private readonly ILogger<DeskService> _logger = logger;
 
     public async Task<Result<List<Desk>>> GetAllDesksAsync() =>
         await _cache.GetOrSetAsync(_repository.SelectAllAsync);
@@ -49,7 +52,14 @@ public sealed class DeskService(
 
         if (newDesk is not null)
         {
-            await _cache.InsertAsync(newDesk);
+            try
+            {
+                await _cache.InsertAsync(newDesk);
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning("Cannot write data into cache. Cache unavailable!");
+            }
             return Result.Created(newDesk);
         }
 

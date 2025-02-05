@@ -1,7 +1,6 @@
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Attributes;
 using Restaurant.API.Models.User;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Services.Contracts;
@@ -15,13 +14,11 @@ public class EmailVerificationController(IEmailVerificationService emailVerifica
 {
     private readonly IEmailVerificationService _emailVerificationService = emailVerificationService;
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize]
     [HttpPost("send")]
     public async Task<Result> SendVerification() =>
         await _emailVerificationService.SendVerificationEmailAsync(User.Adapt<AuthenticatedUser>());
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize]
     [HttpPost("check")]
     public async Task<Result> CheckVerification([FromBody] EmailVerificationModel verificationModel) =>

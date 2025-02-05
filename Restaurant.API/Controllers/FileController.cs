@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Attributes;
 using Restaurant.API.Storage;
 using Restaurant.API.Types;
 
@@ -11,7 +10,6 @@ public sealed class FileController(IStorageService storageService) : ControllerB
 {
     private readonly IStorageService _storageService = storageService;
 
-    [ServiceFilter<ApplyResultAttribute>]
     [HttpPost("upload")]
     public async Task<Result> UploadFileToStorageAsync([FromForm] IFormFile file) =>
         await _storageService.UploadFile("test", file);

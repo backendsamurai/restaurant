@@ -30,7 +30,7 @@ public sealed class AuthService(
     private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
     private readonly ILogger<AuthService> _logger = logger;
 
-    public async Task<Result<LoginUserResponse>> LoginUserAsync(string audience, UserRole userRole, LoginUserModel loginUserModel)
+    public async Task<Result<LoginUserResponse>> LoginUserAsync(UserRole userRole, LoginUserModel loginUserModel)
     {
         var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
 
@@ -74,7 +74,7 @@ public sealed class AuthService(
         if (userRole == UserRole.Employee && !string.IsNullOrEmpty(info.EmployeeRole))
             claims.Add(new(ClaimTypes.EmployeeRole, info.EmployeeRole));
 
-        var tokenResult = _jwtService.GenerateToken(audience, claims);
+        var tokenResult = _jwtService.GenerateToken(claims);
 
         if (tokenResult.IsError)
             return tokenResult.DetailedError!;

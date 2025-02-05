@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Attributes;
 using Restaurant.API.Controllers.Helpers;
 using Restaurant.API.Entities;
 using Restaurant.API.Models.EmployeeRole;
@@ -18,7 +17,6 @@ public class EmployeeRoleController(
 {
     private readonly IEmployeeRoleService _employeeRoleService = employeeRoleService;
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpGet]
     public async Task<Result<List<EmployeeRole>>> GetAllRoles([FromQuery(Name = "name")] string? name)
@@ -36,20 +34,17 @@ public class EmployeeRoleController(
         return await _employeeRoleService.GetAllEmployeeRolesAsync();
     }
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpGet("{id:guid}")]
     public async Task<Result<EmployeeRole>> GetRoleById([FromRoute(Name = "id")] Guid id) =>
         await _employeeRoleService.GetEmployeeRoleByIdAsync(id);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPost]
     public async Task<Result<EmployeeRole>> CreateRole(
         [FromBody] CreateEmployeeRoleModel createEmployeeRoleModel
     ) => await _employeeRoleService.CreateEmployeeRoleAsync(createEmployeeRoleModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpPatch("{id:guid}")]
     public async Task<Result<EmployeeRole>> UpdateRole(
@@ -57,7 +52,6 @@ public class EmployeeRoleController(
         [FromBody] UpdateEmployeeRoleModel updateEmployeeRoleModel
     ) => await _employeeRoleService.UpdateEmployeeRoleAsync(id, updateEmployeeRoleModel);
 
-    [ServiceFilter<ApplyResultAttribute>]
     [Authorize(Policy = AuthorizationPolicies.RequireEmployeeManager)]
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveRole([FromRoute(Name = "id")] Guid id) =>

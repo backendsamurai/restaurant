@@ -6,5 +6,5 @@ namespace Restaurant.API.Services.Contracts;
 
 public interface IAuthService
 {
-    public Task<Result<LoginUserResponse>> LoginUserAsync(string audience, UserRole userRole, LoginUserModel loginUserModel);
+    public Task<Result<LoginUserResponse>> LoginUserAsync(UserRole userRole, LoginUserModel loginUserModel);
 }
