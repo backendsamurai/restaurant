@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Restaurant.API.Data.ValueConverters;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Data.EntityConfigurations;
 
@@ -15,8 +15,6 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasDefaultValueSql("gen_random_uuid()");
 
         builder.Navigation(o => o.Customer).AutoInclude();
-        builder.Navigation(o => o.Waiter).AutoInclude();
-        builder.Navigation(o => o.Desk).AutoInclude();
         builder.Navigation(o => o.Payment).AutoInclude();
         builder.Navigation(o => o.Items).EnableLazyLoading().AutoInclude();
 

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Restaurant.API.Data.ValueConverters;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Data.EntityConfigurations;
 
@@ -32,5 +31,7 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .Property(p => p.UpdatedAt)
             .HasColumnType("timestamp")
             .HasDefaultValueSql("now()");
+
+        builder.HasOne(p => p.Order).WithOne(o => o.Payment).HasForeignKey<Payment>("OrderId");
     }
 }

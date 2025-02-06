@@ -1,12 +1,12 @@
 using FluentValidation;
-using Restaurant.API.Models.User;
+using Restaurant.API.Models.Customer;
 using Restaurant.API.Validators.Helpers;
 
 namespace Restaurant.API.Validators;
 
-public sealed class LoginUserModelValidator : AbstractValidator<LoginUserModel>
+public sealed class LoginCustomerModelValidator : AbstractValidator<LoginCustomerModel>
 {
-    public LoginUserModelValidator()
+    public LoginCustomerModelValidator()
     {
         RuleFor(c => c.Email)
             .NotNull()

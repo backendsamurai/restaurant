@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.API.Attributes;
 using Restaurant.API.Caching;
 using Restaurant.API.Data;
@@ -28,9 +29,11 @@ try
     var pgConnString = builder.Configuration.GetConnectionString("PostgreSQL");
     var redisConnString = builder.Configuration.GetConnectionString("RedisCache");
     var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
+    var adminPassword = builder.Configuration.GetValue<string>("Admin:Password");
+    var corsOrigins = builder.Configuration.GetValue<string[]>("Cors:Origins") ?? [];
 
     builder.Services
-        .AddControllers(c => c.Filters.Add<ApplyResultAttribute>())
+        .AddControllers(c => c.Filters.Add<TransformResultIntoResponse>())
         .AddJsonOptions(c =>
             {
                 c.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -59,16 +62,20 @@ try
     // Security
     builder.Services.AddSecurityConfigurations()
         .AddSecurityServices()
+        .AddAdmin(adminPassword)
         .AddSecurityAuthentication(jwtOptions);
 
     // CORS
     builder.Services.AddCors(x =>
     {
-        x.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+        x.AddDefaultPolicy(p => p.AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .WithOrigins(corsOrigins));
     });
 
     // Database
-    builder.Services.AddDatabaseContext(pgConnString);
+    builder.Services.AddDbContext<RestaurantDbContext>();
 
     // Redis Cache
     builder.Services.AddRedisCaching(redisConnString)

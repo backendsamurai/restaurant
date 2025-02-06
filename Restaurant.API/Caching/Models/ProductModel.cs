@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using Redis.OM.Modeling;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Caching.Models;
 
@@ -31,11 +31,6 @@ public class ProductModel
     [RedisField(PropertyName = "image_url")]
     [JsonPropertyName("image_url")]
     public required string ImageUrl { get; set; }
-
-    [Indexed(PropertyName = "old_price")]
-    [RedisField(PropertyName = "old_price")]
-    [JsonPropertyName("old_price")]
-    public decimal? OldPrice { get; set; }
 
     [Indexed(PropertyName = "price")]
     [RedisField(PropertyName = "price")]

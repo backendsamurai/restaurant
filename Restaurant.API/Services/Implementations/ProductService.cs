@@ -2,12 +2,12 @@ using FluentValidation;
 using Mapster;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
-using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.Product;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -51,14 +51,12 @@ public sealed class ProductService(
         if (productCategory is null)
             return DetailedError.NotFound("Category of product not found", "Please provide correct category id and try again");
 
-        var product = createProductModel.Adapt<Product>();
+        var product = await productRepository.AddAsync(
+            new Product(createProductModel.Name, createProductModel.Description, "", createProductModel.Price, productCategory)
+        );
 
-        product.Category = productCategory;
-
-        var createdProduct = await productRepository.AddAsync(product);
-
-        if (createdProduct is not null)
-            return Result.Created(createdProduct);
+        if (product is not null)
+            return Result.Created(product);
 
         return DetailedError.CreatingProblem("Cannot create product", "Unexpected error");
     }
@@ -80,7 +78,7 @@ public sealed class ProductService(
             if (!validationResult.IsValid)
                 return DetailedError.Invalid("Invalid name", validationResult.Errors.First().ErrorMessage);
 
-            product.Name = updateProductModel.Name;
+            product.ChangeName(updateProductModel.Name);
             isModified = true;
         }
 
@@ -92,7 +90,7 @@ public sealed class ProductService(
             if (!validationResult.IsValid)
                 return DetailedError.Invalid("Invalid description", validationResult.Errors.First().ErrorMessage);
 
-            product.Description = updateProductModel.Description;
+            product.ChangeDescription(updateProductModel.Description);
             isModified = true;
         }
 
@@ -103,8 +101,7 @@ public sealed class ProductService(
             if (!validationResult.IsValid)
                 return DetailedError.Invalid("Invalid price", validationResult.Errors.First().ErrorMessage);
 
-            product.OldPrice = product.Price;
-            product.Price = (decimal)updateProductModel.Price;
+            product.ChangePrice((decimal)updateProductModel.Price);
             isModified = true;
         }
 
@@ -115,7 +112,7 @@ public sealed class ProductService(
             if (category is null)
                 return DetailedError.NotFound("Product category not found", "Provide correct category id");
 
-            product.Category = category;
+            product.ChangeCategory(category);
             isModified = true;
         }
 

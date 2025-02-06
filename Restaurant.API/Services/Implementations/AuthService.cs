@@ -1,31 +1,29 @@
 using FluentValidation;
 using Humanizer;
-using Mapster;
-using Restaurant.API.Entities;
-using Restaurant.API.Models.User;
+using Restaurant.API.Models;
+using Restaurant.API.Models.Customer;
 using Restaurant.API.Repositories;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services.Contracts;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 using SystemClaims = System.Security.Claims;
 
 namespace Restaurant.API.Services.Implementations;
 
-public sealed record UserInfo(User User, Guid Id, string EmployeeRole);
-
 public sealed class AuthService(
     IRepository<Customer> customerRepository,
-    IRepository<Employee> employeeRepository,
     IJwtService jwtService,
     IPasswordHasherService passwordHasherService,
-    IValidator<LoginUserModel> loginUserValidator,
-    ILogger<AuthService> logger
+    IValidator<LoginCustomerModel> loginCustomerModelValidator,
+    ILogger<AuthService> logger,
+    Admin admin
 ) : IAuthService
 {
-    public async Task<Result<LoginUserResponse>> LoginUserAsync(UserRole userRole, LoginUserModel loginUserModel)
+    public async Task<ResultWithObject> LoginCustomerAsync(LoginCustomerModel loginCustomerModel)
     {
-        var validationResult = await loginUserValidator.ValidateAsync(loginUserModel);
+        var validationResult = await loginCustomerModelValidator.ValidateAsync(loginCustomerModel);
 
         if (!validationResult.IsValid)
         {
@@ -33,21 +31,16 @@ public sealed class AuthService(
             return DetailedError.Invalid("One of field are not valid", validationResult.Errors.First().ErrorMessage);
         }
 
-        var info = userRole switch
-        {
-            UserRole.Customer => await GetCustomerInfo(loginUserModel.Email!),
-            UserRole.Employee => await GetEmployeeInfo(loginUserModel.Email!),
-            _ => null
-        };
+        var customer = await customerRepository.WhereFirstAsync<Customer>(c => c.Email == loginCustomerModel.Email);
 
-        if (info is null)
+        if (customer == null)
         {
-            var notFoundError = DetailedError.NotFound($"{userRole.Humanize(LetterCasing.Title)} with provided email not found");
+            var notFoundError = DetailedError.NotFound("customer with provided email not found");
             logger.LogWarning("{@Err}", notFoundError);
             return notFoundError;
         }
 
-        if (!passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
+        if (!passwordHasherService.Verify(loginCustomerModel.Password, customer.PasswordHash))
             return DetailedError.Create(b => b
                 .WithStatus(ResultStatus.Error)
                 .WithSeverity(ErrorSeverity.Error)
@@ -58,28 +51,49 @@ public sealed class AuthService(
 
 
         List<SystemClaims.Claim> claims = [
-            new (ClaimTypes.Name,info.User.Name),
-            new (ClaimTypes.Email, info.User.Email),
-            new (ClaimTypes.UserRole, info.User.Role.ToString().Humanize(LetterCasing.LowerCase)),
-            new (ClaimTypes.IsVerified, info.User.IsVerified.ToString().Humanize(LetterCasing.LowerCase))
+            new (ClaimTypes.Name,customer.Name),
+            new (ClaimTypes.Email, customer.Email),
+            new (ClaimTypes.UserRole, UserRole.Customer.ToString().Humanize(LetterCasing.LowerCase)),
+            new (ClaimTypes.IsVerified, customer.IsVerified.ToString().Humanize(LetterCasing.LowerCase))
         ];
-
-        if (userRole == UserRole.Employee && !string.IsNullOrEmpty(info.EmployeeRole))
-            claims.Add(new(ClaimTypes.EmployeeRole, info.EmployeeRole));
 
         var tokenResult = jwtService.GenerateToken(claims);
 
         if (tokenResult.IsError)
             return tokenResult.DetailedError!;
 
-        return Result.Success(
-            Tuple.Create(info.User, info.Id, tokenResult.Value, info.EmployeeRole)
-                .Adapt<LoginUserResponse>());
+        return ResultWithObject.Success(new
+        {
+            customer.Id,
+            customer.Name,
+            customer.Email,
+            customer.IsVerified,
+            AccessToken = tokenResult.Value
+        });
     }
 
-    private async Task<UserInfo?> GetCustomerInfo(string email) =>
-        await customerRepository.WhereFirstAsync<UserInfo?>(c => c.User.Email == email);
+    public ResultWithObject LoginAdmin(LoginAdminModel loginAdminModel)
+    {
+        var hashedPassword = passwordHasherService.Hash(admin.Password);
 
-    private async Task<UserInfo?> GetEmployeeInfo(string email) =>
-        await employeeRepository.WhereFirstAsync<UserInfo?>(e => e.User.Email == email);
+        if (!passwordHasherService.Verify(loginAdminModel.Password, hashedPassword))
+            return DetailedError.Create(b => b
+                .WithStatus(ResultStatus.Error)
+                .WithSeverity(ErrorSeverity.Error)
+                .WithType("AUTH_WRONG_PASSWORD")
+                .WithTitle("Wrong password")
+                .WithMessage("Check the password is correct and try again")
+            );
+
+        List<SystemClaims.Claim> claims = [
+            new (ClaimTypes.UserRole, UserRole.Admin.ToString().Humanize(LetterCasing.LowerCase))
+        ];
+
+        var tokenResult = jwtService.GenerateToken(claims);
+
+        if (tokenResult.IsError)
+            return tokenResult.DetailedError!;
+
+        return ResultWithObject.Success(new { AccessToken = tokenResult.Value });
+    }
 }

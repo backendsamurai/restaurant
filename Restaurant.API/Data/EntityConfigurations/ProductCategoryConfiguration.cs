@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Restaurant.API.Data.Seeders;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Data.EntityConfigurations;
 

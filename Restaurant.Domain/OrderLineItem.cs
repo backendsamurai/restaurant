@@ -7,6 +7,8 @@ namespace Restaurant.Domain
         public int Count { get; private set; }
         public decimal Price => Product?.Price * Count ?? 0;
 
+        private OrderLineItem() : base(Guid.NewGuid()) { }
+
         public OrderLineItem(Guid productId, int count) : base(Guid.NewGuid())
         {
             ProductId = productId;

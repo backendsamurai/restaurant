@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Data.EntityConfigurations;
 
@@ -26,11 +26,6 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .Property(p => p.ImageUrl)
             .HasColumnType("varchar")
             .HasMaxLength(255);
-
-        builder
-            .Property(p => p.OldPrice)
-            .HasColumnType("numeric(18,2)")
-            .IsRequired(false);
 
         builder
             .Property(p => p.Price)

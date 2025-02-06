@@ -1,6 +1,6 @@
 using Humanizer;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Restaurant.API.Entities;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Data.ValueConverters;
 

@@ -11,25 +11,20 @@ namespace Restaurant.API.Caching.Models;
 public class CustomerCacheModel
 {
     [RedisIdField]
-    [Indexed(PropertyName = "customer_id")]
-    [RedisField(PropertyName = "customer_id")]
-    [JsonPropertyName("customer_id")]
-    public Guid CustomerId { get; set; }
+    [Indexed(PropertyName = "id")]
+    [RedisField(PropertyName = "id")]
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
 
-    [Indexed(PropertyName = "user_id")]
-    [RedisField(PropertyName = "user_id")]
-    [JsonPropertyName("user_id")]
-    public Guid UserId { get; set; }
+    [Indexed(PropertyName = "name")]
+    [RedisField(PropertyName = "name")]
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
 
-    [Indexed(PropertyName = "user_name")]
-    [RedisField(PropertyName = "user_name")]
-    [JsonPropertyName("user_name")]
-    public required string UserName { get; set; }
-
-    [Indexed(PropertyName = "user_email")]
-    [RedisField(PropertyName = "user_email")]
-    [JsonPropertyName("user_email")]
-    public required string UserEmail { get; set; }
+    [Indexed(PropertyName = "email")]
+    [RedisField(PropertyName = "email")]
+    [JsonPropertyName("email")]
+    public required string Email { get; set; }
 
     [Indexed(PropertyName = "is_verified")]
     [RedisField(PropertyName = "is_verified")]

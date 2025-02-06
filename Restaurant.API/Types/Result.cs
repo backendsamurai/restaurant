@@ -44,6 +44,8 @@ public class Result : IResult
     public DetailedError? GetDetailedError() => DetailedError;
 }
 
+
+
 public class Result<T> : IResult where T : class
 {
     public int Status { get; private set; } = ResultStatus.Ok;
@@ -88,6 +90,63 @@ public class Result<T> : IResult where T : class
     public static Result<T> Created(T? value) => new(ResultStatus.Created, value);
 
     public static Result<T> NoContent() => new(ResultStatus.NoContent);
+
+    public object? GetValue()
+    {
+        if (Status == ResultStatus.NoContent)
+            return null;
+
+        return new
+        {
+            Status,
+            Data = Value,
+            Error = DetailedError
+        };
+    }
+
+    public DetailedError? GetDetailedError() => DetailedError;
+}
+
+public class ResultWithObject : IResult
+{
+    public int Status { get; private set; } = ResultStatus.Ok;
+
+    public object? Value { get; private set; }
+
+    public DetailedError? DetailedError { get; set; }
+
+    public bool IsSuccess => Status is
+        ResultStatus.Ok or
+        ResultStatus.NoContent or
+        ResultStatus.Created;
+
+    public bool IsError => !IsSuccess;
+
+    protected ResultWithObject(int status) => Status = status;
+
+    public ResultWithObject(object? value) => Value = value;
+
+    public ResultWithObject(int status, object? value)
+    {
+        Status = status;
+        Value = value;
+    }
+
+    public ResultWithObject(int status, DetailedError? error)
+    {
+        Status = status;
+        DetailedError = error;
+    }
+
+    public static implicit operator ResultWithObject(Result result) => new(result.Status, result.DetailedError);
+
+    public static implicit operator ResultWithObject(DetailedError detailedError) => new(detailedError.Status, detailedError);
+
+    public static ResultWithObject Success(object? value) => new(ResultStatus.Ok, value);
+
+    public static ResultWithObject Created(object? value) => new(ResultStatus.Created, value);
+
+    public static ResultWithObject NoContent() => new(ResultStatus.NoContent);
 
     public object? GetValue()
     {

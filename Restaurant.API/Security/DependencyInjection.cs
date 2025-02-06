@@ -2,11 +2,11 @@ using System.Text;
 using Humanizer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Restaurant.API.Entities;
 using Restaurant.API.Security.Configurations;
 using Restaurant.API.Security.Models;
 using Restaurant.API.Security.Services;
 using Restaurant.API.Security.Services.Contracts;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Security;
 
@@ -16,6 +16,11 @@ public static class DependencyInjection
         services
             .ConfigureOptions<JwtOptionsSetup>()
             .ConfigureOptions<ManagerOptionsSetup>();
+
+    public static IServiceCollection AddAdmin(this IServiceCollection services, string? password)
+    {
+        return password == null ? throw new ArgumentNullException(nameof(password)) : services.AddSingleton<Admin>((_) => new(password));
+    }
 
     public static IServiceCollection AddSecurityServices(this IServiceCollection services) =>
         services
@@ -46,23 +51,13 @@ public static class DependencyInjection
 
             services.AddAuthorizationBuilder()
                 .AddPolicy(
-                    AuthorizationPolicies.RequireEmployee,
-                    p => p.RequireClaim(ClaimTypes.UserRole, UserRole.Employee.ToString().Humanize(LetterCasing.LowerCase))
-                )
-                .AddPolicy(
                     AuthorizationPolicies.RequireCustomer,
                     p => p.RequireClaim(ClaimTypes.UserRole, UserRole.Customer.ToString().Humanize(LetterCasing.LowerCase))
                 )
-                .AddPolicy(AuthorizationPolicies.RequireEmployeeManager, p =>
-                {
-                    p.RequireClaim(ClaimTypes.UserRole, UserRole.Employee.ToString().Humanize(LetterCasing.LowerCase));
-                    p.RequireClaim(ClaimTypes.EmployeeRole, "manager");
-                })
-                .AddPolicy(AuthorizationPolicies.RequireEmployeeWaiter, p =>
-                {
-                    p.RequireClaim(ClaimTypes.UserRole, UserRole.Employee.ToString().Humanize(LetterCasing.LowerCase));
-                    p.RequireClaim(ClaimTypes.EmployeeRole, "waiter");
-                });
+                .AddPolicy(
+                    AuthorizationPolicies.RequireAdmin,
+                    p => p.RequireClaim(ClaimTypes.UserRole, UserRole.Admin.ToString().Humanize(LetterCasing.LowerCase))
+                );
         }
 
         return services;

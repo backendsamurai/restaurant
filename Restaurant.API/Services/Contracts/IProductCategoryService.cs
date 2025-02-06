@@ -1,6 +1,6 @@
-using Restaurant.API.Entities;
 using Restaurant.API.Models.ProductCategory;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Services.Contracts;
 

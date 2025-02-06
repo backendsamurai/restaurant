@@ -1,12 +1,12 @@
 using FluentValidation;
 using Redis.OM.Searching;
 using Restaurant.API.Caching.Models;
-using Restaurant.API.Entities;
 using Restaurant.API.Extensions;
 using Restaurant.API.Models.ProductCategory;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -51,7 +51,7 @@ public sealed class ProductCategoryService(
             return DetailedError.Conflict("Category with this name already exists", "Category with this name already exists");
 
         var newCategory = await productCategoryRepository
-            .AddAsync(new ProductCategory { Name = createProductCategoryModel.Name });
+            .AddAsync(new ProductCategory(createProductCategoryModel.Name));
 
         if (newCategory is not null)
         {
@@ -77,7 +77,7 @@ public sealed class ProductCategoryService(
         if (category.Name == updateProductCategoryModel.Name)
             return Result.NoContent();
 
-        category.Name = updateProductCategoryModel.Name;
+        category.ChangeName(updateProductCategoryModel.Name);
 
         if (await productCategoryRepository.UpdateAsync(category))
         {

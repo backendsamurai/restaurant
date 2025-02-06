@@ -1,3 +1,3 @@
 namespace Restaurant.API.Models.Payment;
 
-public sealed record CreatePaymentModel(decimal Bill, decimal? Tip);
+public sealed record CreatePaymentModel(Guid OrderId, decimal Bill, decimal? Tip);

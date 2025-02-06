@@ -1,13 +1,13 @@
 using FluentValidation;
-using Restaurant.API.Entities;
 using Restaurant.API.Models.Payment;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Services.Implementations;
 
-public sealed class PaymentService(IRepository<Payment> paymentRepository, IValidator<CreatePaymentModel> validator) : IPaymentService
+public sealed class PaymentService(IRepository<Payment> paymentRepository, IRepository<Order> orderRepository, IValidator<CreatePaymentModel> validator) : IPaymentService
 {
     public async Task<Result<List<Payment>>> GetPaymentsAsync() =>
         await paymentRepository.SelectAllAsync();
@@ -22,9 +22,13 @@ public sealed class PaymentService(IRepository<Payment> paymentRepository, IVali
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var payment = await paymentRepository.AddAsync(
-            new Payment { Bill = createPaymentModel.Bill, Tip = createPaymentModel.Tip }
-        );
+        var order = await orderRepository.WhereFirstAsync<Order>(o => o.Id == createPaymentModel.OrderId);
+
+        if (order == null)
+            return DetailedError.NotFound("Cannot found order with provided id!");
+
+
+        var payment = await paymentRepository.AddAsync(new Payment(order, createPaymentModel.Bill, createPaymentModel.Tip));
 
         if (payment is null)
             return DetailedError.CreatingProblem("Cannot create payment");

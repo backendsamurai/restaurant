@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Entities;
 using Restaurant.API.Models.Payment;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
+using Restaurant.Domain;
 
 namespace Restaurant.API.Controllers;
 
@@ -10,17 +10,15 @@ namespace Restaurant.API.Controllers;
 [Route("payments")]
 public sealed class PaymentController(IPaymentService paymentService) : ControllerBase
 {
-    private readonly IPaymentService _paymentService = paymentService;
-
     [HttpGet]
     public async Task<Result<List<Payment>>> GetPayments() =>
-        await _paymentService.GetPaymentsAsync();
+        await paymentService.GetPaymentsAsync();
 
     [HttpGet("{paymentId:guid}")]
     public async Task<Result<Payment>> GetPaymentById([FromRoute(Name = "paymentId")] Guid paymentId) =>
-        await _paymentService.GetPaymentByIdAsync(paymentId);
+        await paymentService.GetPaymentByIdAsync(paymentId);
 
     [HttpPost]
     public async Task<Result<Payment>> CreatePayment([FromBody] CreatePaymentModel createPaymentModel) =>
-        await _paymentService.CreatePaymentAsync(createPaymentModel);
+        await paymentService.CreatePaymentAsync(createPaymentModel);
 }
