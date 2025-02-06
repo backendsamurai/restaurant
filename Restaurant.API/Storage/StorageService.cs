@@ -6,9 +6,6 @@ namespace Restaurant.API.Storage;
 
 public sealed class StorageService(IAmazonS3 s3Client, ILogger<StorageService> logger) : IStorageService
 {
-    private readonly IAmazonS3 _s3Client = s3Client;
-    private readonly ILogger<StorageService> _logger = logger;
-
     public async Task<Result> UploadFile(string bucketName, IFormFile file)
     {
         // If bucket not exists create them
@@ -25,12 +22,12 @@ public sealed class StorageService(IAmazonS3 s3Client, ILogger<StorageService> l
     {
         try
         {
-            await _s3Client.EnsureBucketExistsAsync(bucketName);
-            _logger.LogInformation("Minio: Create named bucket {@bucketName}", bucketName);
+            await s3Client.EnsureBucketExistsAsync(bucketName);
+            logger.LogInformation("Minio: Create named bucket {@bucketName}", bucketName);
         }
         catch (BucketAlreadyOwnedByYouException)
         {
-            _logger.LogWarning("Minio: bucket {@bucketName} already exists", bucketName);
+            logger.LogWarning("Minio: bucket {@bucketName} already exists", bucketName);
         }
     }
 
@@ -55,13 +52,13 @@ public sealed class StorageService(IAmazonS3 s3Client, ILogger<StorageService> l
                 InputStream = readStream
             };
 
-            var res = await _s3Client.PutObjectAsync(putRequest);
+            var res = await s3Client.PutObjectAsync(putRequest);
 
             return Result.Created();
         }
         catch (Exception e)
         {
-            _logger.LogError("Error while uploading file to Minio storage: {@ErrMsg}", e.Message);
+            logger.LogError("Error while uploading file to Minio storage: {@ErrMsg}", e.Message);
 
             return DetailedError.Create((b) => b
                 .WithStatus(ResultStatus.Error)

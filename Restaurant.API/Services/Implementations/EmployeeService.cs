@@ -22,61 +22,53 @@ public sealed class EmployeeService(
     IRedisCollection<EmployeeCacheModel> cache
 ) : IEmployeeService
 {
-    private readonly IRepository<User> _userRepository = userRepository;
-    private readonly IRepository<Employee> _employeeRepository = employeeRepository;
-    private readonly IRepository<EmployeeRole> _employeeRoleRepository = employeeRoleRepository;
-    private readonly IPasswordHasherService _passwordHasher = passwordHasher;
-    private readonly IValidator<CreateEmployeeModel> _createEmployeeModelValidator = createEmployeeModelValidator;
-    private readonly IValidator<UpdateEmployeeModel> _updateEmployeeModelValidator = updateEmployeeModelValidator;
-    private readonly IRedisCollection<EmployeeCacheModel> _cache = cache;
-
     public async Task<Result<List<EmployeeResponse>>> GetAllEmployeesAsync() =>
-        await _cache.GetOrSetAsync(_employeeRepository.SelectAllAsync<EmployeeResponse>);
+        await cache.GetOrSetAsync(employeeRepository.SelectAllAsync<EmployeeResponse>);
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByEmailAsync(string email) =>
-         await _cache.GetOrSetAsync(e => e.UserEmail.StartsWith(email),
-            async () => await _employeeRepository.WhereAsync<EmployeeResponse>(e => e.User.Email.Contains(email)));
+         await cache.GetOrSetAsync(e => e.UserEmail.StartsWith(email),
+            async () => await employeeRepository.WhereAsync<EmployeeResponse>(e => e.User.Email.Contains(email)));
 
     public async Task<Result<EmployeeResponse>> GetEmployeeByIdAsync(Guid id)
     {
-        var employee = await _cache.GetOrSetAsync(e => e.EmployeeId == id,
-                async () => await _employeeRepository.WhereFirstAsync<EmployeeResponse>(e => e.Id == id));
+        var employee = await cache.GetOrSetAsync(e => e.EmployeeId == id,
+                async () => await employeeRepository.WhereFirstAsync<EmployeeResponse>(e => e.Id == id));
 
         return employee is null ? DetailedError.NotFound("Please provide correct id") : Result.Success(employee);
     }
 
     public async Task<Result<List<EmployeeResponse>>> GetEmployeeByRoleAsync(string role) =>
-        await _cache.GetOrSetAsync(e => e.EmployeeRole.StartsWith(role),
-            async () => await _employeeRepository.WhereAsync<EmployeeResponse>(e => e.Role.Name.StartsWith(role)));
+        await cache.GetOrSetAsync(e => e.EmployeeRole.StartsWith(role),
+            async () => await employeeRepository.WhereAsync<EmployeeResponse>(e => e.Role.Name.StartsWith(role)));
 
     public async Task<Result<EmployeeResponse>> CreateEmployeeAsync(CreateEmployeeModel createEmployeeModel)
     {
-        var validationResult = await _createEmployeeModelValidator.ValidateAsync(createEmployeeModel);
+        var validationResult = await createEmployeeModelValidator.ValidateAsync(createEmployeeModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var userFromDb = await _userRepository.FirstOrDefaultAsync(u => u.Email == createEmployeeModel.Email!);
+        var userFromDb = await userRepository.FirstOrDefaultAsync(u => u.Email == createEmployeeModel.Email!);
 
         if (userFromDb is not null)
             return DetailedError.Conflict("Employee with this email already exists", "Please check provided email or provide another email address");
 
-        var employeeRole = await _employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == createEmployeeModel.Role!);
+        var employeeRole = await employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == createEmployeeModel.Role!);
 
         if (employeeRole is null)
             return DetailedError.NotFound("Please provide correct id");
 
-        var passwordHash = _passwordHasher.Hash(createEmployeeModel.Password!);
+        var passwordHash = passwordHasher.Hash(createEmployeeModel.Password!);
 
-        var newUser = await _userRepository.AddAsync(Tuple.Create(createEmployeeModel, passwordHash).Adapt<User>());
+        var newUser = await userRepository.AddAsync(Tuple.Create(createEmployeeModel, passwordHash).Adapt<User>());
 
         if (newUser is not null)
         {
-            var newEmployee = await _employeeRepository.AddAsync(new Employee { Role = employeeRole, User = newUser });
+            var newEmployee = await employeeRepository.AddAsync(new Employee { Role = employeeRole, User = newUser });
 
             if (newEmployee is not null)
             {
-                await _cache.InsertAsync(newEmployee);
+                await cache.InsertAsync(newEmployee);
                 return Result.Created(newEmployee.Adapt<EmployeeResponse>());
             }
         }
@@ -88,14 +80,14 @@ public sealed class EmployeeService(
     {
         bool isModified = false;
 
-        var employee = await _employeeRepository.SelectByIdAsync(id);
+        var employee = await employeeRepository.SelectByIdAsync(id);
 
         if (employee is null)
             return DetailedError.NotFound("Please provide correct id");
 
         if (updateEmployeeModel.Name is not null && updateEmployeeModel.Name != employee.User.Name)
         {
-            var validationResult = await _updateEmployeeModelValidator
+            var validationResult = await updateEmployeeModelValidator
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("name"));
 
             if (!validationResult.IsValid)
@@ -107,7 +99,7 @@ public sealed class EmployeeService(
 
         if (updateEmployeeModel.Email is not null && updateEmployeeModel.Email != employee.User.Email)
         {
-            var validationResult = await _updateEmployeeModelValidator
+            var validationResult = await updateEmployeeModelValidator
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("email"));
 
             if (!validationResult.IsValid)
@@ -117,27 +109,27 @@ public sealed class EmployeeService(
             isModified = true;
         }
 
-        if (updateEmployeeModel.Password is not null && !_passwordHasher.Verify(updateEmployeeModel.Password, employee.User.PasswordHash))
+        if (updateEmployeeModel.Password is not null && !passwordHasher.Verify(updateEmployeeModel.Password, employee.User.PasswordHash))
         {
-            var validationResult = await _updateEmployeeModelValidator
+            var validationResult = await updateEmployeeModelValidator
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("password"));
 
             if (!validationResult.IsValid)
                 return DetailedError.Invalid("Invalid password", validationResult.Errors.First().ErrorMessage);
 
-            employee.User.PasswordHash = _passwordHasher.Hash(updateEmployeeModel.Password);
+            employee.User.PasswordHash = passwordHasher.Hash(updateEmployeeModel.Password);
             isModified = true;
         }
 
         if (updateEmployeeModel.Role is not null && updateEmployeeModel.Role != employee.Role.Name)
         {
-            var validationResult = await _updateEmployeeModelValidator
+            var validationResult = await updateEmployeeModelValidator
                 .ValidateAsync(updateEmployeeModel, options => options.IncludeProperties("role"));
 
             if (!validationResult.IsValid)
                 return DetailedError.Invalid("Invalid role name", validationResult.Errors.First().ErrorMessage);
 
-            var employeeRole = await _employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == updateEmployeeModel.Role!);
+            var employeeRole = await employeeRoleRepository.FirstOrDefaultAsync(er => er.Name == updateEmployeeModel.Role!);
 
             if (employeeRole is null)
                 return DetailedError.NotFound("Employee role not found", "Please provide correct role name");
@@ -148,11 +140,11 @@ public sealed class EmployeeService(
 
         if (isModified)
         {
-            var isUpdated = await _employeeRepository.UpdateAsync(employee);
+            var isUpdated = await employeeRepository.UpdateAsync(employee);
 
             if (isUpdated)
             {
-                await _cache.UpdateAsync(employee);
+                await cache.UpdateAsync(employee);
                 return Result.Success(employee.Adapt<EmployeeResponse>());
             }
 
@@ -164,16 +156,16 @@ public sealed class EmployeeService(
 
     public async Task<Result> RemoveEmployeeAsync(Guid id)
     {
-        var employee = await _employeeRepository.SelectByIdAsync(id);
+        var employee = await employeeRepository.SelectByIdAsync(id);
 
         if (employee is null)
             return DetailedError.NotFound("Please provide correct id");
 
-        var isRemoved = await _employeeRepository.RemoveAsync(employee);
+        var isRemoved = await employeeRepository.RemoveAsync(employee);
 
         if (isRemoved)
         {
-            await _cache.DeleteAsync(employee);
+            await cache.DeleteAsync(employee);
             return Result.NoContent();
         }
 

@@ -23,23 +23,15 @@ public sealed class CustomerService(
     IEmailVerificationService emailVerificationService
 ) : ICustomerService
 {
-    private readonly IRepository<Customer> _customerRepository = customerRepository;
-    private readonly IRepository<User> _userRepository = userRepository;
-    private readonly IValidator<CreateCustomerModel> _createCustomerValidator = createCustomerValidator;
-    private readonly IValidator<UpdateCustomerModel> _updateCustomerValidator = updateCustomerValidator;
-    private readonly IPasswordHasherService _passwordHasher = passwordHasher;
-    private readonly IRedisCollection<CustomerCacheModel> _cache = cache;
-    private readonly IEmailVerificationService _emailVerificationService = emailVerificationService;
-
     public async Task<Result<CustomerResponse>> CreateCustomerAsync(CreateCustomerModel createCustomerModel)
     {
-        var validationResult = await _createCustomerValidator.ValidateAsync(createCustomerModel);
+        var validationResult = await createCustomerValidator.ValidateAsync(createCustomerModel);
 
         if (validationResult.IsValid)
         {
-            var passwordHash = _passwordHasher.Hash(createCustomerModel.Password!);
+            var passwordHash = passwordHasher.Hash(createCustomerModel.Password!);
 
-            var userFromDb = await _userRepository.FirstOrDefaultAsync(u => u.Email == createCustomerModel.Email!);
+            var userFromDb = await userRepository.FirstOrDefaultAsync(u => u.Email == createCustomerModel.Email!);
 
             if (userFromDb is not null)
                 return DetailedError.Conflict(
@@ -54,16 +46,16 @@ public sealed class CustomerService(
                 PasswordHash = passwordHash
             };
 
-            await _userRepository.AddAsync(user);
+            await userRepository.AddAsync(user);
 
-            var customer = await _customerRepository.AddAsync(new Customer { User = user });
+            var customer = await customerRepository.AddAsync(new Customer { User = user });
 
             if (customer is not null)
             {
                 var customerResponse = customer.Adapt<CustomerResponse>();
 
-                await _cache.InsertAsync(customerResponse);
-                await _emailVerificationService.SendVerificationEmailAsync(customer.User);
+                await cache.InsertAsync(customerResponse);
+                await emailVerificationService.SendVerificationEmailAsync(customer.User);
 
                 return Result.Created(customerResponse);
             }
@@ -76,8 +68,8 @@ public sealed class CustomerService(
 
     public async Task<Result<CustomerResponse>> GetCustomerByIdAsync(Guid id)
     {
-        var customer = await _cache.GetOrSetAsync(c => c.CustomerId == id,
-            async () => await _customerRepository.WhereFirstAsync<CustomerResponse>(c => c.Id == id));
+        var customer = await cache.GetOrSetAsync(c => c.CustomerId == id,
+            async () => await customerRepository.WhereFirstAsync<CustomerResponse>(c => c.Id == id));
 
         return customer is null ? DetailedError.NotFound("Please provide correct id") : Result.Success(customer);
     }
@@ -87,7 +79,7 @@ public sealed class CustomerService(
     {
         bool isModified = false;
 
-        var customer = await _customerRepository.SelectByIdAsync(id);
+        var customer = await customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
             return DetailedError.NotFound("Please provide correct id");
@@ -97,7 +89,7 @@ public sealed class CustomerService(
 
         if (updateCustomerModel.Name is not null && updateCustomerModel.Name != customer.User.Name)
         {
-            var nameValidationResult = await _updateCustomerValidator
+            var nameValidationResult = await updateCustomerValidator
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Name));
 
             if (!nameValidationResult.IsValid)
@@ -109,7 +101,7 @@ public sealed class CustomerService(
 
         if (updateCustomerModel.Email is not null && updateCustomerModel.Email != customer.User.Email)
         {
-            var emailValidationResult = await _updateCustomerValidator
+            var emailValidationResult = await updateCustomerValidator
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Email));
 
             if (!emailValidationResult.IsValid)
@@ -119,26 +111,26 @@ public sealed class CustomerService(
             isModified = true;
         }
 
-        if (updateCustomerModel.Password is not null && !_passwordHasher.Verify(updateCustomerModel.Password, customer.User.PasswordHash))
+        if (updateCustomerModel.Password is not null && !passwordHasher.Verify(updateCustomerModel.Password, customer.User.PasswordHash))
         {
-            var passwordValidationResult = await _updateCustomerValidator
+            var passwordValidationResult = await updateCustomerValidator
                 .ValidateAsync(updateCustomerModel, options => options.IncludeProperties(u => u.Password));
 
             if (!passwordValidationResult.IsValid)
                 return DetailedError.Invalid("Invalid password", passwordValidationResult.Errors.First().ErrorMessage);
 
-            customer.User.PasswordHash = _passwordHasher.Hash(updateCustomerModel.Password);
+            customer.User.PasswordHash = passwordHasher.Hash(updateCustomerModel.Password);
             isModified = true;
         }
 
         if (isModified)
         {
-            var isUpdated = await _customerRepository.UpdateAsync(customer);
+            var isUpdated = await customerRepository.UpdateAsync(customer);
 
             if (isUpdated)
             {
                 var customerResponse = customer.Adapt<CustomerResponse>();
-                await _cache.UpdateAsync(customerResponse);
+                await cache.UpdateAsync(customerResponse);
 
                 return Result.Success(customerResponse);
             }
@@ -151,7 +143,7 @@ public sealed class CustomerService(
 
     public async Task<Result> RemoveCustomerAsync(Guid id, AuthenticatedUser authenticatedUser)
     {
-        var customer = await _customerRepository.SelectByIdAsync(id);
+        var customer = await customerRepository.SelectByIdAsync(id);
 
         if (customer is null)
             return DetailedError.NotFound("Please provide correct id");
@@ -159,11 +151,11 @@ public sealed class CustomerService(
         if (customer.User.Email != authenticatedUser.Email)
             return DetailedError.Unauthorized("Please provide authorization first");
 
-        var isRemoved = await _customerRepository.RemoveAsync(customer);
+        var isRemoved = await customerRepository.RemoveAsync(customer);
 
         if (isRemoved)
         {
-            await _cache.DeleteAsync(customer);
+            await cache.DeleteAsync(customer);
             return Result.Success();
         }
 

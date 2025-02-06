@@ -8,7 +8,6 @@ using Restaurant.API.Models.Desk;
 using Restaurant.API.Repositories;
 using Restaurant.API.Services.Contracts;
 using Restaurant.API.Types;
-using StackExchange.Redis;
 
 namespace Restaurant.API.Services.Implementations;
 
@@ -20,45 +19,40 @@ public sealed class DeskService(
     ILogger<DeskService> logger
 ) : IDeskService
 {
-    private readonly IRepository<Desk> _repository = repository;
-    private readonly IValidator<CreateDeskModel> _createDeskValidator = createDeskValidator;
-    private readonly IValidator<UpdateDeskModel> _updateDeskValidator = updateDeskValidator;
-    private readonly IRedisCollection<DeskCacheModel> _cache = cache;
-    private readonly ILogger<DeskService> _logger = logger;
 
     public async Task<Result<List<Desk>>> GetAllDesksAsync() =>
-        await _cache.GetOrSetAsync(_repository.SelectAllAsync);
+        await cache.GetOrSetAsync(repository.SelectAllAsync);
 
     public async Task<Result<Desk>> GetDeskByIdAsync(Guid id)
     {
-        var desk = await _cache.GetOrSetAsync(d => d.Id == id, async () => await _repository.SelectByIdAsync(id));
+        var desk = await cache.GetOrSetAsync(d => d.Id == id, async () => await repository.SelectByIdAsync(id));
 
         return desk is null ? DetailedError.NotFound("Please provide correct id") : Result.Success(desk);
     }
 
     public async Task<Result<Desk>> CreateDeskAsync(CreateDeskModel createDeskModel)
     {
-        var validationResult = await _createDeskValidator.ValidateAsync(createDeskModel);
+        var validationResult = await createDeskValidator.ValidateAsync(createDeskModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var desk = await _repository.Where(d => d.Name == createDeskModel.Name!).FirstOrDefaultAsync();
+        var desk = await repository.Where(d => d.Name == createDeskModel.Name!).FirstOrDefaultAsync();
 
         if (desk is not null)
             return DetailedError.Conflict("Desk is already exists", "Please verify parameter 'name'");
 
-        var newDesk = await _repository.AddAsync(new Desk { Name = createDeskModel.Name! });
+        var newDesk = await repository.AddAsync(new Desk { Name = createDeskModel.Name! });
 
         if (newDesk is not null)
         {
             try
             {
-                await _cache.InsertAsync(newDesk);
+                await cache.InsertAsync(newDesk);
             }
             catch (Exception)
             {
-                _logger.LogWarning("Cannot write data into cache. Cache unavailable!");
+                logger.LogWarning("Cannot write data into cache. Cache unavailable!");
             }
             return Result.Created(newDesk);
         }
@@ -68,12 +62,12 @@ public sealed class DeskService(
 
     public async Task<Result<Desk>> UpdateDeskAsync(Guid id, UpdateDeskModel updateDeskModel)
     {
-        var validationResult = await _updateDeskValidator.ValidateAsync(updateDeskModel);
+        var validationResult = await updateDeskValidator.ValidateAsync(updateDeskModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var desk = await _repository.SelectByIdAsync(id);
+        var desk = await repository.SelectByIdAsync(id);
 
         if (desk is null)
             return DetailedError.NotFound("Please provide correct id");
@@ -83,11 +77,11 @@ public sealed class DeskService(
 
         desk.Name = updateDeskModel.Name!;
 
-        var isUpdated = await _repository.UpdateAsync(desk);
+        var isUpdated = await repository.UpdateAsync(desk);
 
         if (isUpdated)
         {
-            await _cache.UpdateAsync(desk);
+            await cache.UpdateAsync(desk);
             return Result.Success(desk);
         }
 
@@ -96,16 +90,16 @@ public sealed class DeskService(
 
     public async Task<Result> RemoveDeskAsync(Guid id)
     {
-        var desk = await _repository.SelectByIdAsync(id);
+        var desk = await repository.SelectByIdAsync(id);
 
         if (desk is null)
             return DetailedError.NotFound("Please provide correct id");
 
-        var isRemoved = await _repository.RemoveAsync(desk);
+        var isRemoved = await repository.RemoveAsync(desk);
 
         if (isRemoved)
         {
-            await _cache.DeleteAsync(desk);
+            await cache.DeleteAsync(desk);
             return Result.NoContent();
         }
 

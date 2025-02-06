@@ -23,20 +23,13 @@ public sealed class AuthService(
     ILogger<AuthService> logger
 ) : IAuthService
 {
-    private readonly IRepository<Customer> _customerRepository = customerRepository;
-    private readonly IRepository<Employee> _employeeRepository = employeeRepository;
-    private readonly IJwtService _jwtService = jwtService;
-    private readonly IPasswordHasherService _passwordHasherService = passwordHasherService;
-    private readonly IValidator<LoginUserModel> _loginUserValidator = loginUserValidator;
-    private readonly ILogger<AuthService> _logger = logger;
-
     public async Task<Result<LoginUserResponse>> LoginUserAsync(UserRole userRole, LoginUserModel loginUserModel)
     {
-        var validationResult = await _loginUserValidator.ValidateAsync(loginUserModel);
+        var validationResult = await loginUserValidator.ValidateAsync(loginUserModel);
 
         if (!validationResult.IsValid)
         {
-            _logger.LogWarning("Validation error\n{@ErrorMsg}", validationResult.Errors.First().ErrorMessage);
+            logger.LogWarning("Validation error\n{@ErrorMsg}", validationResult.Errors.First().ErrorMessage);
             return DetailedError.Invalid("One of field are not valid", validationResult.Errors.First().ErrorMessage);
         }
 
@@ -50,11 +43,11 @@ public sealed class AuthService(
         if (info is null)
         {
             var notFoundError = DetailedError.NotFound($"{userRole.Humanize(LetterCasing.Title)} with provided email not found");
-            _logger.LogWarning("{@Err}", notFoundError);
+            logger.LogWarning("{@Err}", notFoundError);
             return notFoundError;
         }
 
-        if (!_passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
+        if (!passwordHasherService.Verify(loginUserModel.Password!, info.User.PasswordHash))
             return DetailedError.Create(b => b
                 .WithStatus(ResultStatus.Error)
                 .WithSeverity(ErrorSeverity.Error)
@@ -74,7 +67,7 @@ public sealed class AuthService(
         if (userRole == UserRole.Employee && !string.IsNullOrEmpty(info.EmployeeRole))
             claims.Add(new(ClaimTypes.EmployeeRole, info.EmployeeRole));
 
-        var tokenResult = _jwtService.GenerateToken(claims);
+        var tokenResult = jwtService.GenerateToken(claims);
 
         if (tokenResult.IsError)
             return tokenResult.DetailedError!;
@@ -85,8 +78,8 @@ public sealed class AuthService(
     }
 
     private async Task<UserInfo?> GetCustomerInfo(string email) =>
-        await _customerRepository.WhereFirstAsync<UserInfo?>(c => c.User.Email == email);
+        await customerRepository.WhereFirstAsync<UserInfo?>(c => c.User.Email == email);
 
     private async Task<UserInfo?> GetEmployeeInfo(string email) =>
-        await _employeeRepository.WhereFirstAsync<UserInfo?>(e => e.User.Email == email);
+        await employeeRepository.WhereFirstAsync<UserInfo?>(e => e.User.Email == email);
 }

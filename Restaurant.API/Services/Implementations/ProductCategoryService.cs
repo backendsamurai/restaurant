@@ -17,27 +17,22 @@ public sealed class ProductCategoryService(
     IValidator<UpdateProductCategoryModel> updateProductValidator
 ) : IProductCategoryService
 {
-    private readonly IRepository<ProductCategory> _productCategoryRepository = productCategoryRepository;
-    private readonly IRedisCollection<ProductCategoryModel> _cache = cache;
-    private readonly IValidator<CreateProductCategoryModel> _createProductValidator = createProductValidator;
-    private readonly IValidator<UpdateProductCategoryModel> _updateProductValidator = updateProductValidator;
-
     public async Task<Result<List<ProductCategory>>> GetProductCategories() =>
-        await _cache.GetOrSetAsync(_productCategoryRepository.SelectAllAsync);
+        await cache.GetOrSetAsync(productCategoryRepository.SelectAllAsync);
 
     public async Task<Result<ProductCategory>> GetProductCategoryById(Guid id)
     {
-        var category = await _cache.GetOrSetAsync(pc => pc.Id == id,
-            async () => await _productCategoryRepository.SelectByIdAsync(id));
+        var category = await cache.GetOrSetAsync(pc => pc.Id == id,
+            async () => await productCategoryRepository.SelectByIdAsync(id));
 
         return category is null ? DetailedError.NotFound("Please provide correct category id") : Result.Success(category);
     }
 
     public async Task<Result<List<ProductCategory>>> GetProductCategoriesByName(string name)
     {
-        var categories = await _cache.GetOrSetAsync(
+        var categories = await cache.GetOrSetAsync(
             pc => pc.Name.Contains(name),
-            async () => await _productCategoryRepository.WhereAsync<ProductCategory>(pc => pc.Name.Contains(name))
+            async () => await productCategoryRepository.WhereAsync<ProductCategory>(pc => pc.Name.Contains(name))
         );
 
         return Result.Success(categories);
@@ -45,22 +40,22 @@ public sealed class ProductCategoryService(
 
     public async Task<Result<ProductCategory>> CreateProductCategory(CreateProductCategoryModel createProductCategoryModel)
     {
-        var validationResult = await _createProductValidator.ValidateAsync(createProductCategoryModel);
+        var validationResult = await createProductValidator.ValidateAsync(createProductCategoryModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var category = await _productCategoryRepository.FirstOrDefaultAsync(pc => pc.Name == createProductCategoryModel.Name!);
+        var category = await productCategoryRepository.FirstOrDefaultAsync(pc => pc.Name == createProductCategoryModel.Name!);
 
         if (category is not null)
             return DetailedError.Conflict("Category with this name already exists", "Category with this name already exists");
 
-        var newCategory = await _productCategoryRepository
+        var newCategory = await productCategoryRepository
             .AddAsync(new ProductCategory { Name = createProductCategoryModel.Name });
 
         if (newCategory is not null)
         {
-            await _cache.InsertAsync(newCategory);
+            await cache.InsertAsync(newCategory);
             return Result.Created(newCategory);
         }
 
@@ -69,12 +64,12 @@ public sealed class ProductCategoryService(
 
     public async Task<Result<ProductCategory>> UpdateProductCategory(Guid id, UpdateProductCategoryModel updateProductCategoryModel)
     {
-        var validationResult = await _updateProductValidator.ValidateAsync(updateProductCategoryModel);
+        var validationResult = await updateProductValidator.ValidateAsync(updateProductCategoryModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var category = await _productCategoryRepository.SelectByIdAsync(id);
+        var category = await productCategoryRepository.SelectByIdAsync(id);
 
         if (category is null)
             return DetailedError.NotFound("Please provide correct category id");
@@ -84,9 +79,9 @@ public sealed class ProductCategoryService(
 
         category.Name = updateProductCategoryModel.Name;
 
-        if (await _productCategoryRepository.UpdateAsync(category))
+        if (await productCategoryRepository.UpdateAsync(category))
         {
-            await _cache.UpdateAsync(category);
+            await cache.UpdateAsync(category);
             return Result.Success(category);
         }
 
@@ -95,14 +90,14 @@ public sealed class ProductCategoryService(
 
     public async Task<Result> RemoveProductCategory(Guid id)
     {
-        var category = await _productCategoryRepository.SelectByIdAsync(id);
+        var category = await productCategoryRepository.SelectByIdAsync(id);
 
         if (category is null)
             return DetailedError.NotFound("Please provide correct category id");
 
-        if (await _productCategoryRepository.RemoveAsync(category))
+        if (await productCategoryRepository.RemoveAsync(category))
         {
-            await _cache.DeleteAsync(category);
+            await cache.DeleteAsync(category);
             return Result.NoContent();
         }
 

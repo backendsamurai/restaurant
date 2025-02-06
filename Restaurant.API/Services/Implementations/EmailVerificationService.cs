@@ -24,18 +24,13 @@ public class EmailVerificationService(
 ) : IEmailVerificationService
 {
     public const int OtpCodeLength = 6;
-    private readonly IRepository<User> _userRepository = userRepository;
-    private readonly IOtpGeneratorService _otpGeneratorService = otpGeneratorService;
-    private readonly IRedisConnectionProvider _redisConnectionProvider = redisConnectionProvider;
-    private readonly IValidator<EmailVerificationModel> _emailVerificationValidator = emailVerificationValidator;
-    private readonly IBus _bus = bus;
 
     public async Task<Result> SendVerificationEmailAsync(AuthenticatedUser authenticatedUser)
     {
         if (authenticatedUser.IsVerified)
             return Result.Success();
 
-        var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
+        var user = await userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
 
         if (user is null)
             return DetailedError.NotFound("User cannot find in storage");
@@ -48,9 +43,9 @@ public class EmailVerificationService(
         if (user.IsVerified)
             return Result.Success();
 
-        var otpCode = _otpGeneratorService.Generate(OtpCodeLength);
+        var otpCode = otpGeneratorService.Generate(OtpCodeLength);
 
-        var isCached = await _redisConnectionProvider.Connection
+        var isCached = await redisConnectionProvider.Connection
             .JsonSetAsync($"otp-{user.Id}", "$", otpCode.ToString(), WhenKey.NotExists, TimeSpan.FromMinutes(2));
 
         if (!isCached)
@@ -62,7 +57,7 @@ public class EmailVerificationService(
                 .WithMessage("Try again later")
             );
 
-        await _bus.Publish(Tuple.Create(user, otpCode).Adapt<EmailSendMetadata<EmailTemplatesModels.EmailVerificationModel>>());
+        await bus.Publish(Tuple.Create(user, otpCode).Adapt<EmailSendMetadata<EmailTemplatesModels.EmailVerificationModel>>());
 
         return Result.Success();
     }
@@ -72,17 +67,17 @@ public class EmailVerificationService(
         if (authenticatedUser.IsVerified)
             return Result.Success();
 
-        var validationResult = await _emailVerificationValidator.ValidateAsync(emailVerificationModel);
+        var validationResult = await emailVerificationValidator.ValidateAsync(emailVerificationModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field is invalid. Check provided data and try again later");
 
-        var user = await _userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
+        var user = await userRepository.FirstOrDefaultAsync(u => u.Email == authenticatedUser.Email);
 
         if (user is null)
             return DetailedError.NotFound("User cannot find in storage");
 
-        var otpCodeFromCache = await _redisConnectionProvider.Connection.JsonGetAsync<int?>($"otp-{user.Id}");
+        var otpCodeFromCache = await redisConnectionProvider.Connection.JsonGetAsync<int?>($"otp-{user.Id}");
 
         if (otpCodeFromCache is null || emailVerificationModel.OtpCode != otpCodeFromCache.ToString())
             return DetailedError.Create(b => b
@@ -95,7 +90,7 @@ public class EmailVerificationService(
 
         user.IsVerified = true;
 
-        if (await _userRepository.UpdateAsync(user))
+        if (await userRepository.UpdateAsync(user))
             return Result.Success();
 
         return DetailedError.Unexpected("Please check all provided data and try again.If doesn`t help please contact support");

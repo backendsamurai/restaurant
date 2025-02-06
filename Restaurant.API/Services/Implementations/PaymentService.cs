@@ -9,23 +9,20 @@ namespace Restaurant.API.Services.Implementations;
 
 public sealed class PaymentService(IRepository<Payment> paymentRepository, IValidator<CreatePaymentModel> validator) : IPaymentService
 {
-    private readonly IRepository<Payment> _paymentRepository = paymentRepository;
-    private readonly IValidator<CreatePaymentModel> _validator = validator;
-
     public async Task<Result<List<Payment>>> GetPaymentsAsync() =>
-        await _paymentRepository.SelectAllAsync();
+        await paymentRepository.SelectAllAsync();
 
     public async Task<Result<Payment>> GetPaymentByIdAsync(Guid paymentId) =>
-        Result.Success(await _paymentRepository.SelectByIdAsync(paymentId)) ?? DetailedError.NotFound("Payment not found", "Provide correct payment ID");
+        Result.Success(await paymentRepository.SelectByIdAsync(paymentId)) ?? DetailedError.NotFound("Payment not found", "Provide correct payment ID");
 
     public async Task<Result<Payment>> CreatePaymentAsync(CreatePaymentModel createPaymentModel)
     {
-        var validationResult = await _validator.ValidateAsync(createPaymentModel);
+        var validationResult = await validator.ValidateAsync(createPaymentModel);
 
         if (!validationResult.IsValid)
             return DetailedError.Invalid("One of field are not valid", "Check all fields and try again");
 
-        var payment = await _paymentRepository.AddAsync(
+        var payment = await paymentRepository.AddAsync(
             new Payment { Bill = createPaymentModel.Bill, Tip = createPaymentModel.Tip }
         );
 
