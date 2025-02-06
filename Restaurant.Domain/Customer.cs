@@ -1,16 +1,9 @@
 namespace Restaurant.Domain
 {
-    public sealed class Customer : Entity
+    public sealed class Customer(string name, string email, string passwordHash) : Entity(Guid.NewGuid())
     {
-        public string Name { get; private set; }
-        public string Email { get; private set; }
-        public string PasswordHash { get; private set; }
-
-        public Customer(string name, string email, string passwordHash) : base(Guid.NewGuid())
-        {
-            Name = name;
-            Email = email;
-            PasswordHash = passwordHash;
-        }
+        public string Name { get; private set; } = name;
+        public string Email { get; private set; } = email;
+        public string PasswordHash { get; private set; } = passwordHash;
     }
 }

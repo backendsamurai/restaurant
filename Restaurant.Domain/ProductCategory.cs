@@ -1,12 +1,7 @@
 namespace Restaurant.Domain
 {
-    public sealed class ProductCategory : Entity
+    public sealed class ProductCategory(string name) : Entity(Guid.NewGuid())
     {
-        public string Name { get; private set; }
-
-        public ProductCategory(string name) : base(Guid.NewGuid())
-        {
-            Name = name;
-        }
+        public string Name { get; private set; } = name;
     }
 }
