@@ -1,5 +1,5 @@
 using Humanizer;
-using Restaurant.API.Types;
+using Restaurant.Shared.Common;
 
 namespace Restaurant.API.Controllers.Helpers;
 

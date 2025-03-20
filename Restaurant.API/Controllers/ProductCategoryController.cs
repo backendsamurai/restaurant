@@ -1,17 +1,21 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.API.Controllers.Helpers;
-using Restaurant.API.Models.ProductCategory;
-using Restaurant.API.Services.Contracts;
-using Restaurant.API.Types;
+using Restaurant.Application.ProductCategory.CreateProductCategory;
+using Restaurant.Application.ProductCategory.GetProductCategories;
+using Restaurant.Application.ProductCategory.GetProductCategoriesByName;
+using Restaurant.Application.ProductCategory.GetProductCategoryById;
+using Restaurant.Application.ProductCategory.RemoveProductCategory;
+using Restaurant.Application.ProductCategory.UpdateProductCategory;
 using Restaurant.Domain;
+using Restaurant.Shared.Common;
+using Restaurant.Shared.Models.ProductCategory;
 
 namespace Restaurant.API.Controllers;
 
 [ApiController]
 [Route("products/categories")]
-public sealed class ProductCategoryController(
-    IProductCategoryService productCategoryService
-) : ControllerBase
+public sealed class ProductCategoryController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
     public async Task<Result<List<ProductCategory>>> GetAllCategories([FromQuery(Name = "name")] string? name)
@@ -23,27 +27,27 @@ public sealed class ProductCategoryController(
             if (validationResult.IsError)
                 return validationResult.DetailedError!;
 
-            return await productCategoryService.GetProductCategoriesByName(name);
+            return await mediator.Send(new GetProductCategoriesByNameQuery { CategoryName = name });
         }
 
-        return await productCategoryService.GetProductCategories();
+        return await mediator.Send(new GetProductCategoriesQuery());
     }
 
     [HttpGet("{id:guid}")]
     public async Task<Result<ProductCategory>> GetCategoryById([FromRoute(Name = "id")] Guid id)
-        => await productCategoryService.GetProductCategoryById(id);
+        => await mediator.Send(new GetProductCategoryByIdQuery { CategoryId = id });
 
     [HttpPost]
-    public async Task<Result<ProductCategory>> CreateCategory([FromBody] CreateProductCategoryModel createProductCategoryModel)
-        => await productCategoryService.CreateProductCategory(createProductCategoryModel);
+    public async Task<Result<ProductCategory>> CreateCategory([FromBody] CreateProductCategoryCommand command)
+        => await mediator.Send(command);
 
     [HttpPatch("{id:guid}")]
     public async Task<Result<ProductCategory>> UpdateCategory(
         [FromRoute(Name = "id")] Guid id,
         [FromBody] UpdateProductCategoryModel updateProductCategoryModel
-    ) => await productCategoryService.UpdateProductCategory(id, updateProductCategoryModel);
+    ) => await mediator.Send(new UpdateProductCategoryCommand { CategoryId = id, Name = updateProductCategoryModel.Name });
 
     [HttpDelete("{id:guid}")]
     public async Task<Result> RemoveCategory([FromRoute(Name = "id")] Guid id)
-        => await productCategoryService.RemoveProductCategory(id);
+        => await mediator.Send(new RemoveProductCategoryCommand { CategoryId = id });
 }

@@ -5,7 +5,6 @@ namespace Restaurant.Domain
         public string Name { get; private set; } = default!;
         public string Email { get; private set; } = default!;
         public string PasswordHash { get; private set; } = default!;
-        public bool IsVerified { get; private set; } = false;
 
         private Customer() : base(Guid.NewGuid()) { }
 
@@ -32,11 +31,6 @@ namespace Restaurant.Domain
         {
             if (!string.IsNullOrWhiteSpace(passwordHash))
                 PasswordHash = passwordHash;
-        }
-
-        public void SetVerified(bool verified)
-        {
-            IsVerified = verified;
         }
     }
 }

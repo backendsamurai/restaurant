@@ -1,14 +1,11 @@
 using System.Security.Claims;
 using Humanizer;
 using Mapster;
-using Restaurant.API.Mail.Constants;
-using Restaurant.API.Mail.Models;
-using MailTemplateModels = Restaurant.API.Mail.Templates.Models;
-using SecurityModels = Restaurant.API.Security.Models;
-using Restaurant.API.Models.Product;
-using Restaurant.API.Models.Order;
-using Restaurant.API.Models.OrderLineItem;
 using Restaurant.Domain;
+using Restaurant.Shared.Models;
+using Restaurant.Shared.Models.Order;
+using Restaurant.Shared.Models.OrderLineItem;
+using Restaurant.Shared.Models.Product;
 
 namespace Restaurant.API.Mapping;
 
@@ -17,19 +14,10 @@ public sealed class MappingRegistration : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config
-            .NewConfig<ClaimsPrincipal, SecurityModels.AuthenticatedUser>()
-            .Map(d => d.Name, s => s.FindFirstValue(SecurityModels.ClaimTypes.Name))
-            .Map(d => d.Email, s => s.FindFirstValue(SecurityModels.ClaimTypes.Email))
-            .Map(d => d.UserRole, s => Enum.Parse(typeof(UserRole), s.FindFirstValue(SecurityModels.ClaimTypes.UserRole).Dehumanize()))
-            .Map(d => d.IsVerified, s => bool.Parse(s.FindFirstValue(SecurityModels.ClaimTypes.IsVerified).Humanize(LetterCasing.Title)));
-
-
-        config
-            .NewConfig<Tuple<Customer, string>, EmailSendMetadata<MailTemplateModels.EmailVerificationModel>>()
-            .Map(d => d.RecipientEmail, s => s.Item1.Email)
-            .Map(d => d.Subject, _ => EmailSubjects.VERIFICATION_SUBJECT)
-            .Map(d => d.TemplateFileName, _ => EmailTemplates.VERIFICATION)
-            .Map(d => d.TemplateModel, s => new MailTemplateModels.EmailVerificationModel(s.Item1.Id, s.Item1.Name, s.Item2));
+            .NewConfig<ClaimsPrincipal, AuthenticatedUser>()
+            .Map(d => d.Name, s => s.FindFirstValue(Shared.Models.ClaimTypes.Name))
+            .Map(d => d.Email, s => s.FindFirstValue(Shared.Models.ClaimTypes.Email))
+            .Map(d => d.UserRole, s => Enum.Parse(typeof(UserRole), s.FindFirstValue(Shared.Models.ClaimTypes.UserRole).Dehumanize()));
 
         config
             .NewConfig<CreateProductModel, Product>()

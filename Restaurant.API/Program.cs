@@ -1,19 +1,15 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Restaurant.API.Attributes;
-using Restaurant.API.Caching;
-using Restaurant.API.Data;
-using Restaurant.API.Mail;
 using Restaurant.API.Mapping;
-using Restaurant.API.Messaging;
-using Restaurant.API.Repositories;
 using Restaurant.API.Security;
-using Restaurant.API.Security.Configurations;
-using Restaurant.API.Services;
-using Restaurant.API.Storage;
-using Restaurant.API.Types;
 using Restaurant.API.Validators;
+using Restaurant.Persistence;
+using Restaurant.Services;
+using Restaurant.Shared;
+using Restaurant.Shared.Configurations;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -53,14 +49,16 @@ try
     // Swagger
     builder.Services.AddSwaggerGen();
 
+    builder.Services.AddShared();
+
     // Core
-    builder.Services.AddRepositories()
+    builder.Services
         .AddInternalServices()
         .AddValidators()
         .AddMappings();
 
     // Security
-    builder.Services.AddSecurityConfigurations()
+    builder.Services
         .AddSecurityServices()
         .AddAdmin(adminPassword)
         .AddSecurityAuthentication(jwtOptions);
@@ -75,29 +73,11 @@ try
     });
 
     // Database
-    builder.Services.AddDbContext<RestaurantDbContext>();
-
-    // Redis Cache
-    builder.Services.AddRedisCaching(redisConnString)
-        .AddRedisIndexes()
-        .AddRedisModels();
-
-    // Mail
-    builder.Services.AddMailConfiguration()
-        .AddMailServices()
-        .AddMail();
-
-    // Messaging
-    builder.Services.AddMessaging();
-
-    // Custom Types
-    builder.Services.AddCustomTypes();
-
-    // AWS S3 storage with Minio Server
-    builder.Services.AddStorageConfiguration()
-        .AddS3Storage()
-        .AddStorageServices();
-
+    builder.Services.AddDbContext<RestaurantDbContext>(options =>
+        options
+            .UseNpgsql(pgConnString)
+            .LogTo(msg => Log.Information(msg), LogLevel.Information, DbContextLoggerOptions.UtcTime | DbContextLoggerOptions.SingleLine)
+            .UseSnakeCaseNamingConvention());
 
     await using var app = builder.Build();
 

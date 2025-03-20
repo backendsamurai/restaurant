@@ -1,10 +1,9 @@
 using FluentValidation;
-using Restaurant.API.Models;
-using Restaurant.API.Models.Customer;
-using Restaurant.API.Models.Order;
-using Restaurant.API.Models.Payment;
-using Restaurant.API.Models.Product;
-using Restaurant.API.Models.ProductCategory;
+using Restaurant.Shared.Models.Customer;
+using Restaurant.Shared.Models.Order;
+using Restaurant.Shared.Models.Payment;
+using Restaurant.Shared.Models.Product;
+using Restaurant.Shared.Models.ProductCategory;
 
 namespace Restaurant.API.Validators;
 
@@ -16,7 +15,6 @@ public static class DependencyInjection
             .AddScoped<IValidator<CreateCustomerModel>, CreateCustomerModelValidator>()
             .AddScoped<IValidator<UpdateCustomerModel>, UpdateCustomerModelValidator>()
             .AddScoped<IValidator<LoginCustomerModel>, LoginCustomerModelValidator>()
-            .AddScoped<IValidator<EmailVerificationModel>, EmailVerificationModelValidator>()
             .AddScoped<IValidator<CreateProductCategoryModel>, CreateProductCategoryModelValidator>()
             .AddScoped<IValidator<UpdateProductCategoryModel>, UpdateProductCategoryModelValidator>()
             .AddScoped<IValidator<CreateProductModel>, CreateProductModelValidator>()

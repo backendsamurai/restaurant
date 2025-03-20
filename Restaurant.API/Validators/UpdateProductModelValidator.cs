@@ -1,5 +1,5 @@
 using FluentValidation;
-using Restaurant.API.Models.Product;
+using Restaurant.Shared.Models.Product;
 
 
 namespace Restaurant.API.Validators;

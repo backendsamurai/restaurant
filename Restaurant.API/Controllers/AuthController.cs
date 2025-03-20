@@ -1,20 +1,19 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.API.Models;
-using Restaurant.API.Models.Customer;
-using Restaurant.API.Services.Contracts;
-using Restaurant.API.Types;
+using Restaurant.Application.Auth.LoginAdmin;
+using Restaurant.Application.Auth.LoginCustomer;
+using Restaurant.Shared.Common;
 
 namespace Restaurant.API.Controllers
 {
     [ApiController]
     [Route("auth")]
-    public sealed class AuthController(IAuthService authService) : ControllerBase
+    public sealed class AuthController(IMediator mediator) : ControllerBase
     {
         [HttpPost("customer")]
-        public async Task<ResultWithObject> LoginCustomer([FromBody] LoginCustomerModel model) =>
-             await authService.LoginCustomerAsync(model);
+        public async Task<ResultWithObject> LoginCustomer([FromBody] LoginCustomerCommand command) => await mediator.Send(command);
 
         [HttpPost("admin")]
-        public ResultWithObject LoginAdmin([FromBody] LoginAdminModel model) => authService.LoginAdmin(model);
+        public async Task<ResultWithObject> LoginAdmin([FromBody] LoginAdminCommand command) => await mediator.Send(command);
     }
 }

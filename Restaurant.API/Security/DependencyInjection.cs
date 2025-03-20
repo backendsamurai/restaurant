@@ -2,21 +2,16 @@ using System.Text;
 using Humanizer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Restaurant.API.Security.Configurations;
-using Restaurant.API.Security.Models;
-using Restaurant.API.Security.Services;
-using Restaurant.API.Security.Services.Contracts;
 using Restaurant.Domain;
+using Restaurant.Services.Contracts;
+using Restaurant.Services.Implementations;
+using Restaurant.Shared.Configurations;
+using Restaurant.Shared.Models;
 
 namespace Restaurant.API.Security;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddSecurityConfigurations(this IServiceCollection services) =>
-        services
-            .ConfigureOptions<JwtOptionsSetup>()
-            .ConfigureOptions<ManagerOptionsSetup>();
-
     public static IServiceCollection AddAdmin(this IServiceCollection services, string? password)
     {
         return password == null ? throw new ArgumentNullException(nameof(password)) : services.AddSingleton<Admin>((_) => new(password));

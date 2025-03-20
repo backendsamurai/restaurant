@@ -1,6 +1,6 @@
 using FluentValidation;
-using Restaurant.API.Models.Customer;
 using Restaurant.API.Validators.Helpers;
+using Restaurant.Shared.Models.Customer;
 
 namespace Restaurant.API.Validators;
 
