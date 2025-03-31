@@ -1,8 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Application.Payment.CreatePayment;
-using Restaurant.Application.Payment.GetPaymentById;
-using Restaurant.Application.Payment.GetPayments;
+using Restaurant.Application.Payment;
 using Restaurant.Domain;
 using Restaurant.Shared.Common;
 
@@ -18,7 +16,7 @@ public sealed class PaymentController(IMediator mediator) : ControllerBase
 
     [HttpGet("{paymentId:guid}")]
     public async Task<Result<Payment>> GetPaymentById([FromRoute(Name = "paymentId")] Guid paymentId) =>
-        await mediator.Send(new GetPaymentByIdQuery { PaymentId = paymentId });
+        await mediator.Send(new GetPaymentByIdQuery(paymentId));
 
     [HttpPost]
     public async Task<Result<Payment>> CreatePayment([FromBody] CreatePaymentCommand command) => await mediator.Send(command);

@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Restaurant.Application.Auth.LoginAdmin;
-using Restaurant.Application.Auth.LoginCustomer;
+using Restaurant.Application.Auth;
 using Restaurant.Shared.Common;
 
 namespace Restaurant.API.Controllers
