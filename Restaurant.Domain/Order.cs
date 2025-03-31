@@ -13,12 +13,14 @@ namespace Restaurant.Domain
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
 
-        private Order() : base(Guid.NewGuid()) { }
+        private Order() { }
 
-        public Order(Customer customer) : base(Guid.NewGuid())
+        private Order(Guid id, Customer customer) : base(id)
         {
             Customer = customer;
         }
+
+        public static Order Create(Guid id, Customer customer) => new(id, customer);
 
         public void AddItemToOrder(OrderLineItem item)
         {

@@ -28,7 +28,7 @@ public sealed class PaymentService(IRepository<Payment> paymentRepository, IRepo
             return DetailedError.NotFound("Cannot found order with provided id!");
 
 
-        var payment = await paymentRepository.AddAsync(new Payment(order, createPaymentModel.Bill, createPaymentModel.Tip));
+        var payment = await paymentRepository.AddAsync(Payment.Create(Guid.NewGuid(), order, createPaymentModel.Bill, createPaymentModel.Tip));
 
         if (payment is null)
             return DetailedError.CreatingProblem("Cannot create payment");

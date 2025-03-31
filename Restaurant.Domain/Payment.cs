@@ -9,13 +9,18 @@ namespace Restaurant.Domain
         public DateTime CreatedAt { get; private set; }
         public DateTime UpdatedAt { get; private set; }
 
-        private Payment() : base(Guid.NewGuid()) { }
+        private Payment() { }
 
-        public Payment(Order order, decimal bill, decimal? tip) : base(Guid.NewGuid())
+        private Payment(Guid id, Order order, decimal bill, decimal? tip) : base(id)
         {
             Order = order;
             Bill = bill;
             Tip = tip;
+        }
+
+        public static Payment Create(Guid id, Order order, decimal bill, decimal? tip)
+        {
+            return new Payment(id, order, bill, tip);
         }
     }
 }

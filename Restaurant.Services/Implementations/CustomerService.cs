@@ -36,7 +36,7 @@ public sealed class CustomerService(
                     "Please check provided email or provide another email address"
                 );
 
-            var customer = await customerRepository.AddAsync(new(createCustomerModel.Name!, createCustomerModel.Email!, passwordHash));
+            var customer = await customerRepository.AddAsync(Customer.Create(Guid.NewGuid(), createCustomerModel.Name!, createCustomerModel.Email!, passwordHash));
 
             if (customer is not null)
             {

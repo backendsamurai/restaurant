@@ -1,7 +1,15 @@
 namespace Restaurant.Domain
 {
-    public abstract class Entity(Guid id)
+    public abstract class Entity
     {
-        public Guid Id { get; private set; } = id;
+        public Guid Id { get; private set; }
+
+        protected Entity(Guid id) : this()
+        {
+            Id = id;
+        }
+
+        // Required by EF Core
+        protected Entity() { }
     }
 }

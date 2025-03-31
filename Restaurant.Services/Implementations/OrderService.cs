@@ -44,11 +44,11 @@ public sealed class OrderService(
         if (customer is null)
             return DetailedError.NotFound("Customer not found", "Provide correct customer ID");
 
-        var order = new Order(customer);
+        var order = Order.Create(Guid.NewGuid(), customer);
 
         foreach (var (productId, count) in createOrderModel.OrderItems)
         {
-            order.AddItemToOrder(new OrderLineItem(productId, count));
+            order.AddItemToOrder(OrderLineItem.CreateWithProductId(Guid.NewGuid(), productId, count));
         }
 
         var newOrder = await orderRepository.AddAsync(order);

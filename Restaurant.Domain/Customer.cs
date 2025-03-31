@@ -6,14 +6,16 @@ namespace Restaurant.Domain
         public string Email { get; private set; } = default!;
         public string PasswordHash { get; private set; } = default!;
 
-        private Customer() : base(Guid.NewGuid()) { }
+        private Customer() { }
 
-        public Customer(string name, string email, string passwordHash) : base(Guid.NewGuid())
+        private Customer(Guid id, string name, string email, string passwordHash) : base(id)
         {
             Name = name;
             Email = email;
             PasswordHash = passwordHash;
         }
+
+        public static Customer Create(Guid id, string name, string email, string passwordHash) => new(id, name, email, passwordHash);
 
         public void ChangeName(string name)
         {

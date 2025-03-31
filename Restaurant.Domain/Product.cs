@@ -8,19 +8,27 @@ namespace Restaurant.Domain
         public decimal Price { get; private set; } = default!;
         public ProductCategory Category { get; private set; } = default!;
 
-        public Product() : base(Guid.NewGuid()) { }
+        private Product() { }
 
-        public Product(string name,
-        string description,
-        string imageUrl,
-        decimal price,
-        ProductCategory category) : base(Guid.NewGuid())
+        private Product(
+            Guid id,
+            string name,
+            string description,
+            string imageUrl,
+            decimal price,
+            ProductCategory category
+        ) : base(id)
         {
             Name = name;
             Description = description;
             ImageUrl = imageUrl;
             Price = price;
             Category = category;
+        }
+
+        public static Product Create(Guid id, string name, string description, string imageUrl, decimal price, ProductCategory productCategory)
+        {
+            return new Product(id, name, description, imageUrl, price, productCategory);
         }
 
         public void ChangeName(string name) => Name = name;

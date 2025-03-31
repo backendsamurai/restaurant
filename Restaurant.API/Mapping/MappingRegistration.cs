@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Humanizer;
 using Mapster;
 using Restaurant.Domain;
+using Restaurant.Infrastructure.Cache.Models;
 using Restaurant.Shared.Models;
 using Restaurant.Shared.Models.Order;
 using Restaurant.Shared.Models.OrderLineItem;
@@ -41,5 +42,9 @@ public sealed class MappingRegistration : IRegister
             .Map(d => d.Payment, s => s.Payment)
             .Map(d => d.CreatedAt, s => s.CreatedAt)
             .Map(d => d.UpdatedAt, s => s.UpdatedAt);
+
+        config
+            .NewConfig<ProductCategoryCache, ProductCategory>()
+            .ConstructUsing(pc => ProductCategory.Create(pc.Id, pc.Name));
     }
 }

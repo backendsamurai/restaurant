@@ -7,19 +7,23 @@ namespace Restaurant.Domain
         public int Count { get; private set; }
         public decimal Price => Product?.Price * Count ?? 0;
 
-        private OrderLineItem() : base(Guid.NewGuid()) { }
+        private OrderLineItem() { }
 
-        public OrderLineItem(Guid productId, int count) : base(Guid.NewGuid())
+        private OrderLineItem(Guid id, Guid productId, int count) : base(id)
         {
             ProductId = productId;
             Count = count;
         }
 
-        public OrderLineItem(Guid productId, Product product, int count) : base(Guid.NewGuid())
+        private OrderLineItem(Guid id, Product product, int count) : base(id)
         {
-            ProductId = productId;
+            ProductId = product.Id;
             Product = product;
             Count = count;
         }
+
+        public static OrderLineItem CreateWithProductId(Guid id, Guid productId, int count) => new(id, productId, count);
+
+        public static OrderLineItem Create(Guid id, Product product, int count) => new(id, product, count);
     }
 }

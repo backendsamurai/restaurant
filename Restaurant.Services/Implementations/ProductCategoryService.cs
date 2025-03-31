@@ -51,7 +51,7 @@ public sealed class ProductCategoryService(
             return DetailedError.Conflict("Category with this name already exists", "Category with this name already exists");
 
         var newCategory = await productCategoryRepository
-            .AddAsync(new ProductCategory(createProductCategoryModel.Name));
+            .AddAsync(ProductCategory.Create(Guid.NewGuid(), createProductCategoryModel.Name));
 
         if (newCategory is not null)
         {

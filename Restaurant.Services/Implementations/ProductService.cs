@@ -51,7 +51,7 @@ public sealed class ProductService(
             return DetailedError.NotFound("Category of product not found", "Please provide correct category id and try again");
 
         var product = await productRepository.AddAsync(
-            new Product(createProductModel.Name, createProductModel.Description, "", createProductModel.Price, productCategory)
+            Product.Create(Guid.NewGuid(), createProductModel.Name, createProductModel.Description, "", createProductModel.Price, productCategory)
         );
 
         if (product is not null)

@@ -6,6 +6,8 @@ using Restaurant.API.Attributes;
 using Restaurant.API.Mapping;
 using Restaurant.API.Security;
 using Restaurant.API.Validators;
+using Restaurant.Application;
+using Restaurant.Infrastructure.Cache;
 using Restaurant.Persistence;
 using Restaurant.Services;
 using Restaurant.Shared;
@@ -15,8 +17,6 @@ using Serilog;
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
-
-Log.Information("Starting application !");
 
 try
 {
@@ -54,6 +54,7 @@ try
     // Core
     builder.Services
         .AddInternalServices()
+        .AddApplicationLayer()
         .AddValidators()
         .AddMappings();
 
@@ -62,6 +63,9 @@ try
         .AddSecurityServices()
         .AddAdmin(adminPassword)
         .AddSecurityAuthentication(jwtOptions);
+
+    // Infrastructure
+    builder.Services.AddCache(redisConnString);
 
     // CORS
     builder.Services.AddCors(x =>
@@ -99,7 +103,7 @@ try
     await app.RunAsync();
     return 0;
 }
-catch (Exception e)
+catch (Exception e) when (e is not HostAbortedException)
 {
     Log.Fatal(e, "An unhandled exception occurred during bootstrapping");
     return 1;
