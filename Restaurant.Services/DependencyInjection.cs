@@ -8,10 +8,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInternalServices(this IServiceCollection services) =>
         services
-            .AddScoped<ICustomerService, CustomerService>()
-            .AddScoped<IAuthService, AuthService>()
-            .AddScoped<IProductCategoryService, ProductCategoryService>()
-            .AddScoped<IProductService, ProductService>()
-            .AddScoped<IPaymentService, PaymentService>()
-            .AddScoped<IOrderService, OrderService>();
+            .AddScoped<IConsumersService, ConsumersService>()
+            .AddSingleton<IPasswordHasherService, PasswordHasherService>()
+            .AddScoped<IMenuCategoriesService, MenuCategoriesService>()
+            .AddScoped<IMenuItemsService, MenuItemsService>()
+            .AddScoped<IOrdersService, OrdersService>();
 }

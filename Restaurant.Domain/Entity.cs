@@ -1,15 +1,20 @@
-namespace Restaurant.Domain
+using System.Text.Json.Serialization;
+
+namespace Restaurant.Domain;
+
+public abstract class Entity<TId>
 {
-    public abstract class Entity
+    [JsonPropertyOrder(-1)]
+    public TId Id { get; private set; }
+
+    protected Entity(TId id) : this()
     {
-        public Guid Id { get; private set; }
+        Id = id;
+    }
 
-        protected Entity(Guid id) : this()
-        {
-            Id = id;
-        }
-
-        // Required by EF Core
-        protected Entity() { }
+    // Required by EF Core
+    protected Entity()
+    {
+        Id = default!;
     }
 }

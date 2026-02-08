@@ -1,0 +1,13 @@
+bin/
+obj/
+.git
+.gitignore
+README.md
+*.md
+.vs/
+.vscode/
+*.user
+*.suo
+.DS_Store
+node_modules/
+npm-debug.log

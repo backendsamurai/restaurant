@@ -14,8 +14,7 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnType("uuid")
             .HasDefaultValueSql("gen_random_uuid()");
 
-        builder.Navigation(o => o.Customer).AutoInclude();
-        builder.Navigation(o => o.Payment).AutoInclude();
+        builder.Navigation(o => o.Consumer).AutoInclude();
         builder.Navigation(o => o.Items).EnableLazyLoading().AutoInclude();
 
         builder
@@ -24,13 +23,11 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasConversion<OrderStatusValueConverter>();
 
         builder
-            .Property(o => o.CreatedAt)
-            .HasColumnType("timestamp")
-            .HasDefaultValueSql("now()");
+            .Property(o => o.CreatedAtUtc)
+            .HasColumnType("timestamptz");
 
         builder
-            .Property(o => o.UpdatedAt)
-            .HasColumnType("timestamp")
-            .HasDefaultValueSql("now()");
+            .Property(o => o.UpdatedAtUtc)
+            .HasColumnType("timestamptz");
     }
 }

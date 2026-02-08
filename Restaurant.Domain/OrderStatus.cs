@@ -1,7 +1,6 @@
-namespace Restaurant.Domain
+namespace Restaurant.Domain;
+
+public enum OrderStatus
 {
-    public enum OrderStatus
-    {
-        Created, Pending, Cancelled
-    }
+    Initiated, InProgress, Cancelled
 }

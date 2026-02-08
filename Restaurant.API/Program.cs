@@ -1,114 +1,60 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Ardalis.Result.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Restaurant.API.Attributes;
+using Restaurant.API;
 using Restaurant.API.Mapping;
-using Restaurant.API.Security;
-using Restaurant.API.Validators;
 using Restaurant.Application;
-using Restaurant.Infrastructure.Cache;
 using Restaurant.Persistence;
 using Restaurant.Services;
-using Restaurant.Shared;
-using Restaurant.Shared.Configurations;
-using Serilog;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+var builder = WebApplication.CreateBuilder(args);
 
-try
+builder.Services
+    .AddControllers(opt => opt.AddDefaultResultConvention())
+    .AddJsonOptions(opt =>
+        {
+            opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            opt.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            opt.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        });
+
+builder.Services
+    .RegisterOpenApiDefinition("orders", "Restaurant API - Orders")
+    .RegisterOpenApiDefinition("consumers", "Restaurant API - Consumers")
+    .RegisterOpenApiDefinition("menuItems", "Restaurant API - Menu Items")
+    .RegisterOpenApiDefinition("menuCategories", "Restaurant API - Menu Categories")
+    .RegisterOpenApiDefinition("administration", "Restaurant API - Administration");
+
+
+builder.Services.AddDbContext<RestaurantDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
+
+// Core
+builder.Services
+    .AddInternalServices()
+    .AddApplicationLayer()
+    .AddMappings();
+
+await using var app = builder.Build();
+
+if (builder.Environment.IsDevelopment())
 {
-    var builder = WebApplication.CreateBuilder(args);
-
-    var pgConnString = builder.Configuration.GetConnectionString("PostgreSQL");
-    var redisConnString = builder.Configuration.GetConnectionString("RedisCache");
-    var jwtOptions = builder.Configuration.GetRequiredSection(JwtOptionsSetup.SectionName).Get<JwtOptions>();
-    var adminPassword = builder.Configuration.GetValue<string>("Admin:Password");
-    var corsOrigins = builder.Configuration.GetValue<string[]>("Cors:Origins") ?? [];
-
-    builder.Services
-        .AddControllers(c => c.Filters.Add<TransformResultIntoResponse>())
-        .AddJsonOptions(c =>
-            {
-                c.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-                c.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                c.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-            });
-
-    // Logging with Serilog
-    builder.Logging.ClearProviders();
-
-    builder.Services.AddSerilog((services, lc) => lc
-        .ReadFrom.Configuration(builder.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-    );
-
-    // Swagger
-    builder.Services.AddSwaggerGen();
-
-    builder.Services.AddShared();
-
-    // Core
-    builder.Services
-        .AddInternalServices()
-        .AddApplicationLayer()
-        .AddValidators()
-        .AddMappings();
-
-    // Security
-    builder.Services
-        .AddSecurityServices()
-        .AddAdmin(adminPassword)
-        .AddSecurityAuthentication(jwtOptions);
-
-    // Infrastructure
-    builder.Services.AddCache(redisConnString);
-
-    // CORS
-    builder.Services.AddCors(x =>
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
     {
-        x.AddDefaultPolicy(p => p.AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .WithOrigins(corsOrigins));
+        options.SwaggerEndpoint("/openapi/orders.json", "Restaurant API v1 (Orders)");
+        options.SwaggerEndpoint("/openapi/consumers.json", "Restaurant API v1 (Consumers)");
+        options.SwaggerEndpoint("/openapi/menuItems.json", "Restaurant API v1 (Menu Items)");
+        options.SwaggerEndpoint("/openapi/menuCategories.json", "Restaurant API v1 (Menu Categories)");
+        options.SwaggerEndpoint("/openapi/administration.json", "Restaurant API v1 (Administration)");
+
+        options.DisplayRequestDuration();
+        options.EnableTryItOutByDefault();
+        options.DefaultModelsExpandDepth(-1);
     });
-
-    // Database
-    builder.Services.AddDbContext<RestaurantDbContext>(options =>
-        options
-            .UseNpgsql(pgConnString)
-            .LogTo(msg => Log.Information(msg), LogLevel.Information, DbContextLoggerOptions.UtcTime | DbContextLoggerOptions.SingleLine)
-            .UseSnakeCaseNamingConvention());
-
-    await using var app = builder.Build();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.UseCors();
-
-    app.UseSerilogRequestLogging(x => x.IncludeQueryInRequestPath = true);
-
-    if (builder.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    app.MapControllers();
-
-    await app.RunAsync();
-    return 0;
 }
-catch (Exception e) when (e is not HostAbortedException)
-{
-    Log.Fatal(e, "An unhandled exception occurred during bootstrapping");
-    return 1;
-}
-finally
-{
-    await Log.CloseAndFlushAsync();
-}
+
+app.MapControllers();
+
+await app.RunAsync();
