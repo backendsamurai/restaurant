@@ -1,3 +1,5 @@
+using Microsoft.OpenApi;
+
 namespace Restaurant.API;
 
 public static class ServiceCollectionExtensions
@@ -8,11 +10,11 @@ public static class ServiceCollectionExtensions
         {
             return services.AddOpenApi(groupName, opt =>
             {
-                opt.ShouldInclude = (description) => description != null && description.GroupName == groupName;
+                opt.ShouldInclude = (description) => description.GroupName == groupName;
 
                 opt.AddDocumentTransformer((document, context, _) =>
                 {
-                    document.Info = new()
+                    document.Info = new OpenApiInfo
                     {
                         Title = title,
                         Version = "v1",
@@ -23,5 +25,4 @@ public static class ServiceCollectionExtensions
             });
         }
     }
-
 }
